@@ -144,7 +144,7 @@ export function SettingsPanel({
     <group position={PANEL_POS}>
       <Panel width={1.9} height={2.35}>
         <Label position={[0, 1.04, 0.02]} size={0.1}>
-          Settings
+          Settings ⟳
         </Label>
         {rows.map((key, i) => {
           const r = SETTING_RANGES[key];

@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { generateMaze, pathToSteps } from "@/lib/maze";
 import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
+import { SNAP_TURN, TeleportFloor, useSticks } from "./vr/locomotion";
 import {
   HighscoresPanel,
   LevelSelectPanel,
@@ -218,7 +219,7 @@ export default function MazeGame() {
           ) : (
             <>
               <MenuRoom />
-              <MenuCamera />
+              <MenuRig />
               {phase === "title" && (
                 <TitlePanel
                   onStart={() => beginBriefing(MIN_LEVEL)}
@@ -310,7 +311,7 @@ export default function MazeGame() {
 
       {inMaze && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-card/85 px-4 py-1.5 text-center text-xs text-muted-foreground shadow-sm">
-          Thumbsticks to move · hold the X button (or X key on screen) to check the time left
+          Trigger to teleport one cell · thumbstick forward to step, sideways to turn 30° · hold X for the time left
         </div>
       )}
     </div>

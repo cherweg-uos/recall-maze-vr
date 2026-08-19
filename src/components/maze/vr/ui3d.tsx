@@ -1,6 +1,8 @@
 import { Text } from "@react-three/drei";
-import { useState, type ReactNode } from "react";
-import type { ThreeEvent } from "@react-three/fiber";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useXRInputSourceState } from "@react-three/xr";
+import * as THREE from "three";
 
 export const UI = {
   panel: "#f4f1ea",
@@ -11,6 +13,135 @@ export const UI = {
   accentSoft: "#f0a882",
   danger: "#b8443a",
 };
+
+/**
+ * Lets a group be picked up with a controller (or dragged with the mouse) and
+ * carried around. Returns pointer handlers to spread onto the grab surface.
+ */
+export function useGrabbable(group: React.RefObject<THREE.Group | null>) {
+  const grab = useRef<{ hand: THREE.Object3D; offset: THREE.Matrix4 } | null>(null);
+  const [held, setHeld] = useState(false);
+  const left = useXRInputSourceState("controller", "left");
+  const right = useXRInputSourceState("controller", "right");
+
+  const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    const board = group.current;
+    if (!board) return;
+    const hands = [left?.object, right?.object].filter(Boolean) as THREE.Object3D[];
+    if (!hands.length) return;
+    const point = e.point;
+    const hand = hands.reduce((best, h) =>
+      h.getWorldPosition(new THREE.Vector3()).distanceTo(point) <
+      best.getWorldPosition(new THREE.Vector3()).distanceTo(point)
+        ? h
+        : best,
+    );
+    const offset = new THREE.Matrix4().copy(hand.matrixWorld).invert().multiply(board.matrixWorld);
+    grab.current = { hand, offset };
+    setHeld(true);
+  };
+
+  const release = () => {
+    grab.current = null;
+    setHeld(false);
+  };
+
+  useFrame(() => {
+    const board = group.current;
+    const g = grab.current;
+    if (!board || !g) return;
+    const world = new THREE.Matrix4().copy(g.hand.matrixWorld).multiply(g.offset);
+    const pos = new THREE.Vector3();
+    const quat = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    world.decompose(pos, quat, scale);
+    board.position.copy(pos);
+    board.quaternion.copy(quat);
+  });
+
+  return {
+    held,
+    handlers: { onPointerDown, onPointerUp: release, onPointerLeave: release },
+  };
+}
+
+/**
+ * Places its contents at a fixed distance and height straight ahead of the
+ * player, once, when the phase starts — so every screen shows up in exactly the
+ * same spot relative to the viewer. It can then be grabbed and repositioned.
+ */
+export function Anchored({
+  distance = 1.9,
+  height = 1.45,
+  children,
+}: {
+  distance?: number;
+  height?: number;
+  children?: ReactNode;
+}) {
+  const group = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+  const placed = useRef(false);
+
+  useEffect(() => {
+    placed.current = false;
+  }, []);
+
+  useFrame(() => {
+    if (placed.current || !group.current) return;
+    const camPos = camera.getWorldPosition(new THREE.Vector3());
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    dir.y = 0;
+    if (dir.lengthSq() < 1e-5) dir.set(0, 0, -1);
+    dir.normalize();
+    group.current.position.set(
+      camPos.x + dir.x * distance,
+      height,
+      camPos.z + dir.z * distance,
+    );
+    group.current.rotation.set(0, Math.atan2(-dir.x, -dir.z), 0);
+    placed.current = true;
+  });
+
+  return <group ref={group}>{children}</group>;
+}
+
+/** An anchored panel with a grab bar along its top edge. */
+export function GrabbablePanel({
+  width,
+  height,
+  distance,
+  anchorHeight,
+  children,
+}: {
+  width: number;
+  height: number;
+  distance?: number;
+  anchorHeight?: number;
+  children?: ReactNode;
+}) {
+  const inner = useRef<THREE.Group>(null);
+  const { held, handlers } = useGrabbable(inner);
+  return (
+    <Anchored
+      {...(distance !== undefined ? { distance } : {})}
+      {...(anchorHeight !== undefined ? { height: anchorHeight } : {})}
+    >
+      <group ref={inner}>
+        <Panel width={width} height={height} color={held ? "#fbf7ef" : UI.panel}>
+          <mesh position={[0, height / 2 + 0.055, 0]} {...handlers}>
+            <boxGeometry args={[width * 0.5, 0.07, 0.04]} />
+            <meshStandardMaterial color={held ? UI.accent : UI.panelEdge} roughness={0.8} />
+          </mesh>
+          {children}
+        </Panel>
+      </group>
+    </Anchored>
+  );
+}
+
 
 export function Panel({
   width,

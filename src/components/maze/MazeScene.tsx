@@ -137,6 +137,15 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
     goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
   }, [currentHeading, goTo, maze]);
 
+  /** Step one cell backwards without changing facing. */
+  const stepBack = useCallback(() => {
+    const facing = headingToDir(currentHeading());
+    const idx = CARDINALS.indexOf(facing);
+    const dir = CARDINALS[(idx + 2) % 4]!;
+    if (!canStep(maze, cell.current.col, cell.current.row, dir)) return;
+    goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
+  }, [currentHeading, goTo, maze]);
+
   const turn = useCallback(
     (d: -1 | 1) => {
       yaw.current -= d * snapAngle(settings);
@@ -144,12 +153,18 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
     [settings],
   );
 
-  useSticks({ settings, onYaw: (r) => (yaw.current -= r), onForward: stepForward });
+  useSticks({
+    settings,
+    onYaw: (r) => (yaw.current -= r),
+    onForward: stepForward,
+    onBack: stepBack,
+  });
 
   useKeyPress((code) => {
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
     else if (code === "ArrowRight" || code === "KeyD") turn(1);
     else if (code === "KeyW" || code === "ArrowUp") stepForward();
+    else if (code === "KeyS" || code === "ArrowDown") stepBack();
     else if (code === "KeyX") xHeld.current = true;
   });
 

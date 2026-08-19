@@ -81,12 +81,20 @@ const SCORES_KEY = "maze-recall:scores:v1";
 export function loadSettings(): GameSettings {
   try {
     const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<GameSettings>) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<GameSettings>;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        mazeShape: { ...DEFAULT_SETTINGS.mazeShape, ...(parsed.mazeShape ?? {}) },
+      };
+    }
   } catch {
     /* ignore */
   }
-  return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS, mazeShape: { ...DEFAULT_SHAPE } };
 }
+
 
 export function saveSettings(s: GameSettings) {
   try {

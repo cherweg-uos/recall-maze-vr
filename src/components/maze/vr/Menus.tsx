@@ -3,6 +3,8 @@ import {
   MAX_LEVEL,
   MIN_LEVEL,
   SETTING_RANGES,
+  SMOOTH_TURN_RANGE,
+  SNAP_ANGLES,
   briefingSeconds,
   formatClock,
   formatSeconds,

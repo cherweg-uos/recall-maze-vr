@@ -142,8 +142,8 @@ export function SettingsPanel({
   const snap = settings.turnStyle === "snap";
   return (
     <group position={PANEL_POS}>
-      <Panel width={1.9} height={2.15}>
-        <Label position={[0, 0.94, 0.02]} size={0.1}>
+      <Panel width={1.9} height={2.35}>
+        <Label position={[0, 1.04, 0.02]} size={0.1}>
           Settings
         </Label>
         {rows.map((key, i) => {
@@ -151,7 +151,7 @@ export function SettingsPanel({
           return (
             <SliderRow
               key={key}
-              position={[0, 0.7 - i * 0.24, 0.02]}
+              position={[0, 0.8 - i * 0.24, 0.02]}
               label={r.label}
               valueText={formatSeconds(settings[key])}
               value={settings[key]}
@@ -162,13 +162,13 @@ export function SettingsPanel({
             />
           );
         })}
-        <Label position={[0, -0.2, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.7}>
+        <Label position={[0, -0.12, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.7}>
           {`At level 10: ${formatSeconds(briefingSeconds(10, settings))} to study, ${formatSeconds(
             mazeSeconds(10, settings),
           )} to escape`}
         </Label>
 
-        <Label position={[-0.75, -0.35, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+        <Label position={[-0.75, -0.29, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
           Turning
         </Label>
         <Button3D
@@ -177,7 +177,7 @@ export function SettingsPanel({
           width={0.5}
           height={0.15}
           size={0.055}
-          position={[-0.35, -0.52, 0.03]}
+          position={[-0.35, -0.46, 0.03]}
           color={snap ? UI.accentSoft : "#e9e4d9"}
         />
         <Button3D
@@ -186,13 +186,13 @@ export function SettingsPanel({
           width={0.5}
           height={0.15}
           size={0.055}
-          position={[0.35, -0.52, 0.03]}
+          position={[0.35, -0.46, 0.03]}
           color={snap ? "#e9e4d9" : UI.accentSoft}
         />
 
         {snap ? (
           <group>
-            <Label position={[-0.75, -0.72, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+            <Label position={[-0.75, -0.66, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
               Snap angle
             </Label>
             {SNAP_ANGLES.map((deg, i) => (
@@ -203,14 +203,14 @@ export function SettingsPanel({
                 width={0.4}
                 height={0.15}
                 size={0.055}
-                position={[-0.45 + i * 0.45, -0.88, 0.03]}
+                position={[-0.45 + i * 0.45, -0.82, 0.03]}
                 color={settings.snapDegrees === deg ? UI.accentSoft : "#e9e4d9"}
               />
             ))}
           </group>
         ) : (
           <SliderRow
-            position={[0, -0.8, 0.02]}
+            position={[0, -0.74, 0.02]}
             label="Turn speed"
             valueText={`${settings.smoothDegPerSec}°/s`}
             value={settings.smoothDegPerSec}
@@ -226,7 +226,7 @@ export function SettingsPanel({
           onClick={onBack}
           width={0.6}
           height={0.18}
-          position={[0, -1.0, 0.03]}
+          position={[0, -1.05, 0.03]}
         />
       </Panel>
     </group>

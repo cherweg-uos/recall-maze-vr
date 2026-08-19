@@ -288,7 +288,7 @@ export default function MazeGame() {
 
       {inMaze && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-card/85 px-4 py-1.5 text-center text-xs text-muted-foreground shadow-sm">
-          Thumbsticks to move · hold X for time left ({formatClock(runLeft)} on screen: hold X key)
+          Thumbsticks to move · hold the X button (or X key on screen) to check the time left
         </div>
       )}
     </div>

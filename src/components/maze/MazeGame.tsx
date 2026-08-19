@@ -142,6 +142,7 @@ export default function MazeGame() {
 
   const beginRun = useCallback(() => {
     const total = mazeSeconds(level, settings) * 1000;
+    visited.current = new Set([`${maze.start.col},${maze.start.row}`]);
     runLeftRef.current = total;
     setRunLeft(total);
     startedAt.current = performance.now();

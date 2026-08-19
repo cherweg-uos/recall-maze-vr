@@ -55,6 +55,7 @@ export const SHAPE_RANGES = {
   branchDepth: { min: 1, max: 8, step: 1, label: "Decoy corridor length" },
   loopiness: { min: 0, max: 1, step: 0.05, label: "Decoy loops" },
   twistiness: { min: 0, max: 1, step: 0.05, label: "Corridor twistiness" },
+  fillCoverage: { min: 0, max: 1, step: 0.05, label: "Fill coverage" },
 } as const;
 
 export type ShapeKey = keyof typeof SHAPE_RANGES;

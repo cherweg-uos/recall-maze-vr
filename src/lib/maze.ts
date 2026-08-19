@@ -35,6 +35,8 @@ export interface MazeShape {
   loopiness: number;
   /** bias towards turning instead of running straight (0–1) */
   twistiness: number;
+  /** how much of the leftover grid gets carved into corridors (0–1) */
+  fillCoverage: number;
 }
 
 export const DELTA: Record<Dir, { dc: number; dr: number }> = {
@@ -187,6 +189,103 @@ function growBranch(
   }
 }
 
+/** BFS distances from a source over the carved corridor graph. */
+function distances(cells: Cell[][], cols: number, rows: number, src: Pt): Map<string, number> {
+  const out = new Map<string, number>([[key(src), 0]]);
+  const queue: Pt[] = [src];
+  for (let i = 0; i < queue.length; i++) {
+    const p = queue[i]!;
+    const d0 = out.get(key(p))!;
+    for (const d of DIRS) {
+      if (cells[p.row]![p.col]!.walls[d]) continue;
+      const q = { col: p.col + DELTA[d].dc, row: p.row + DELTA[d].dr };
+      if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+      if (out.has(key(q))) continue;
+      out.set(key(q), d0 + 1);
+      queue.push(q);
+    }
+  }
+  return out;
+}
+
+/**
+ * Carve every remaining untouched cell into the corridor network as a spanning
+ * forest: a wall is only removed when it joins two different components, so no
+ * cycle (and therefore no shortcut around the solution) can ever be created.
+ */
+function fillRemaining(
+  cells: Cell[][],
+  cols: number,
+  rows: number,
+  used: Set<string>,
+  shape: MazeShape,
+) {
+  const parent = new Map<string, string>();
+  const find = (k: string): string => {
+    const p = parent.get(k);
+    if (!p || p === k) return k;
+    const root = find(p);
+    parent.set(k, root);
+    return root;
+  };
+  const union = (a: string, b: string) => parent.set(find(a), find(b));
+
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const k = `${c},${r}`;
+      parent.set(k, k);
+    }
+  // seed components from the corridors carved so far
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      for (const d of ["E", "S"] as Dir[]) {
+        if (cells[r]![c]!.walls[d]) continue;
+        const nc = c + DELTA[d].dc;
+        const nr = r + DELTA[d].dr;
+        if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+        union(`${c},${r}`, `${nc},${nr}`);
+      }
+
+  const free: Pt[] = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const p = { col: c, row: r };
+      if (!used.has(key(p))) free.push(p);
+    }
+  const coverage = Math.max(0, Math.min(1, shape.fillCoverage ?? 1));
+  let budget = Math.round(free.length * coverage);
+  if (budget <= 0) return;
+
+  let progress = true;
+  while (progress && budget > 0) {
+    progress = false;
+    for (const p of shuffle(free)) {
+      if (budget <= 0) break;
+      if (used.has(key(p))) continue;
+      // prefer joining an existing corridor, otherwise any distinct component
+      const options: Dir[] = [];
+      for (const d of biasedDirs(null, shape.twistiness)) {
+        const q = { col: p.col + DELTA[d].dc, row: p.row + DELTA[d].dr };
+        if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+        if (find(key(p)) === find(key(q))) continue;
+        options.push(d);
+      }
+      if (!options.length) continue;
+      const carved = options.find((d) =>
+        used.has(`${p.col + DELTA[d].dc},${p.row + DELTA[d].dr}`),
+      );
+      const dir = carved ?? options[0]!;
+      const q = { col: p.col + DELTA[dir].dc, row: p.row + DELTA[dir].dr };
+      carveBetween(cells, p, dir);
+      union(key(p), key(q));
+      used.add(key(p));
+      used.add(key(q));
+      budget--;
+      progress = true;
+    }
+  }
+}
+
 function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze {
   const { cols, rows, targetLength } = levelConfig(level);
   const cells = makeGrid(cols, rows);
@@ -245,14 +344,21 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
     );
   }
 
+  // fill the rest of the grid so no cell is left sealed off
+  fillRemaining(cells, cols, rows, used, shape);
+
   // optional loops between off-route corridors only
   if (shape.loopiness > 0) {
+    const offRoute: Pt[] = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const p = { col: c, row: r };
+        if (used.has(key(p)) && !pathSet.has(key(p))) offRoute.push(p);
+      }
     const pairs = shuffle(
-      branchCells.flatMap(({ pt }) =>
-        (["E", "S"] as Dir[]).map((d) => ({ pt, d })),
-      ),
+      offRoute.flatMap((pt) => (["E", "S"] as Dir[]).map((d) => ({ pt, d }))),
     );
-    let loops = Math.round(branchCells.length * shape.loopiness * 0.35);
+    let loops = Math.round(offRoute.length * shape.loopiness * 0.35);
     for (const { pt, d } of pairs) {
       if (loops <= 0) break;
       const q = { col: pt.col + DELTA[d].dc, row: pt.row + DELTA[d].dr };
@@ -260,15 +366,30 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
       if (!used.has(key(q)) || pathSet.has(key(q)) || pathSet.has(key(pt))) continue;
       if (!cells[pt.row]![pt.col]!.walls[d]) continue;
       carveBetween(cells, pt, d);
+      // never let a loop create a shortcut around the recorded solution
+      const goalCell = route[route.length - 1]!;
+      if ((distances(cells, cols, rows, start).get(key(goalCell)) ?? 0) < route.length - 1) {
+        cells[pt.row]![pt.col]!.walls[d] = true;
+        cells[q.row]![q.col]!.walls[OPPOSITE[d]] = true;
+        continue;
+      }
       loops--;
     }
   }
 
-  // decoy goals: deepest dead ends of the false branches
-  const deadEnds = branchCells
-    .filter(({ pt }) => DIRS.filter((d) => !cells[pt.row]![pt.col]!.walls[d]).length === 1)
-    .sort((a, b) => b.depth - a.depth);
+  // decoy goals: deepest off-route dead ends, spread across the whole map
+  const dist = distances(cells, cols, rows, start);
+  const deadEnds: BranchCell[] = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const p = { col: c, row: r };
+      if (pathSet.has(key(p)) || !used.has(key(p))) continue;
+      if (DIRS.filter((d) => !cells[r]![c]!.walls[d]).length !== 1) continue;
+      deadEnds.push({ pt: p, depth: dist.get(key(p)) ?? 0 });
+    }
+  deadEnds.sort((a, b) => b.depth - a.depth);
   const decoyGoals = deadEnds.slice(0, Math.max(0, fakeGoals)).map(({ pt }) => pt);
+
 
   const goal = route[route.length - 1]!;
   return { cols, rows, cells, start, goal, path: route, decoyGoals, level };
@@ -294,6 +415,7 @@ export const DEFAULT_SHAPE: MazeShape = {
   branchDepth: 4,
   loopiness: 0.15,
   twistiness: 0.7,
+  fillCoverage: 1,
 };
 
 /** Generate several layouts and keep the one offering the most false turns. */

@@ -235,7 +235,13 @@ function TimeTab({ settings, onChange }: TabProps) {
 }
 
 function MazeTab({ settings, onChange }: TabProps) {
-  const shapeKeys: ShapeKey[] = ["decoyDensity", "branchDepth", "loopiness", "twistiness"];
+  const shapeKeys: ShapeKey[] = [
+    "decoyDensity",
+    "branchDepth",
+    "loopiness",
+    "twistiness",
+    "fillCoverage",
+  ];
   const fake = settings.fakeGoalsEnabled;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
@@ -293,7 +299,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, -0.12 - i * 0.26, 0.02]}
+            position={[0, -0.1 - i * 0.24, 0.02]}
             label={r.label}
             valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
             value={v}

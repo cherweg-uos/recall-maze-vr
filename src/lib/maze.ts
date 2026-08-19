@@ -15,12 +15,26 @@ export interface Maze {
   goal: { col: number; row: number };
   /** solution path from start to goal, inclusive */
   path: { col: number; row: number }[];
+  /** purely decorative decoy goals sitting in false branches */
+  decoyGoals: { col: number; row: number }[];
   level: number;
 }
 
 export interface Step {
   dir: Dir;
   count: number;
+}
+
+/** Layout knobs exposed in the settings menu. */
+export interface MazeShape {
+  /** how many false branches sprout off the solution route (0–1) */
+  decoyDensity: number;
+  /** how many cells a false branch runs before dead-ending */
+  branchDepth: number;
+  /** how often off-route corridors reconnect to each other (0–1) */
+  loopiness: number;
+  /** bias towards turning instead of running straight (0–1) */
+  twistiness: number;
 }
 
 export const DELTA: Record<Dir, { dc: number; dr: number }> = {
@@ -52,228 +66,270 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Recursive-backtracker carve: produces a perfect maze (exactly one path between any two cells). */
-function carve(cells: Cell[][], cols: number, rows: number, startCol: number, startRow: number) {
-  const visited = new Set<string>();
-  const stack: Cell[] = [cells[startRow]![startCol]!];
-  visited.add(`${startCol},${startRow}`);
-
-  while (stack.length) {
-    const cur = stack[stack.length - 1]!;
-    const options = shuffle(DIRS).filter((d) => {
-      const nc = cur.col + DELTA[d].dc;
-      const nr = cur.row + DELTA[d].dr;
-      return nc >= 0 && nc < cols && nr >= 0 && nr < rows && !visited.has(`${nc},${nr}`);
-    });
-
-    if (!options.length) {
-      stack.pop();
-      continue;
-    }
-    const d = options[0]!;
-    const next = cells[cur.row + DELTA[d].dr]![cur.col + DELTA[d].dc]!;
-    cur.walls[d] = false;
-    next.walls[OPPOSITE[d]] = false;
-    visited.add(`${next.col},${next.row}`);
-    stack.push(next);
-  }
-}
-
-/** BFS over carved passages; returns predecessor map + distances. */
-function bfs(cells: Cell[][], cols: number, rows: number, from: { col: number; row: number }) {
-  const dist = new Map<string, number>();
-  const prev = new Map<string, string>();
-  const queue: { col: number; row: number }[] = [from];
-  dist.set(`${from.col},${from.row}`, 0);
-
-  while (queue.length) {
-    const cur = queue.shift()!;
-    const cell = cells[cur.row]![cur.col]!;
-    for (const d of DIRS) {
-      if (cell.walls[d]) continue;
-      const nc = cur.col + DELTA[d].dc;
-      const nr = cur.row + DELTA[d].dr;
-      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
-      const key = `${nc},${nr}`;
-      if (dist.has(key)) continue;
-      dist.set(key, dist.get(`${cur.col},${cur.row}`)! + 1);
-      prev.set(key, `${cur.col},${cur.row}`);
-      queue.push({ col: nc, row: nr });
-    }
-  }
-  return { dist, prev };
-}
-
 /** Grid size and required path length grow with the level (levels 3–20). */
 export function levelConfig(level: number) {
-  const size = Math.min(4 + Math.floor(level * 0.6), 15);
+  const size = Math.min(5 + Math.floor(level * 0.65), 16);
   const targetLength = 4 + Math.max(0, level - 3) * 2;
   return { cols: size, rows: size, targetLength };
 }
 
-/** Walk up the BFS tree from a cell to the root, collecting keys. */
-function ancestry(prev: Map<string, string>, key: string): string[] {
-  const chain: string[] = [key];
-  let cur = prev.get(key);
-  while (cur) {
-    chain.push(cur);
-    cur = prev.get(cur);
-  }
-  return chain;
+interface Pt {
+  col: number;
+  row: number;
+}
+
+const key = (p: Pt) => `${p.col},${p.row}`;
+
+function carveBetween(cells: Cell[][], p: Pt, dir: Dir) {
+  const nc = p.col + DELTA[dir].dc;
+  const nr = p.row + DELTA[dir].dr;
+  cells[p.row]![p.col]!.walls[dir] = false;
+  cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+}
+
+/** Order directions with a bias against continuing in the same direction. */
+function biasedDirs(from: Dir | null, twistiness: number): Dir[] {
+  const shuffled = shuffle(DIRS);
+  if (!from) return shuffled;
+  const straightPenalty = twistiness;
+  return shuffled
+    .map((d) => ({ d, w: Math.random() + (d === from ? -straightPenalty : 0) }))
+    .sort((a, b) => b.w - a.w)
+    .map((x) => x.d);
 }
 
 /**
- * Open extra doorways between off-route cells so wrong turns lead into long,
- * looping corridors instead of obvious two-step dead ends. An opening is only
- * accepted when the existing route between the two cells never touches the
- * solution path, which keeps the solution unique.
+ * Depth-first random walk that carves a corridor of exactly `target` steps.
+ * Cells adjacent to already-used cells are avoided so corridors stay closed
+ * instead of merging into one open room.
  */
-function braid(
+function walkPath(
+  cols: number,
+  rows: number,
+  start: Pt,
+  target: number,
+  twistiness: number,
+): Pt[] | null {
+  const used = new Set<string>([key(start)]);
+  const path: Pt[] = [start];
+  const dirs: Dir[] = [];
+
+  const neighbourCount = (p: Pt) => {
+    let n = 0;
+    for (const d of DIRS) {
+      const q = { col: p.col + DELTA[d].dc, row: p.row + DELTA[d].dr };
+      if (used.has(key(q))) n++;
+    }
+    return n;
+  };
+
+  const attempt = (depth: number): boolean => {
+    if (depth === target) return true;
+    const cur = path[path.length - 1]!;
+    const from = dirs[dirs.length - 1] ?? null;
+    for (const d of biasedDirs(from, twistiness)) {
+      const q = { col: cur.col + DELTA[d].dc, row: cur.row + DELTA[d].dr };
+      if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+      if (used.has(key(q))) continue;
+      // only the cell we came from may already be a corridor
+      if (neighbourCount(q) > 1) continue;
+      used.add(key(q));
+      path.push(q);
+      dirs.push(d);
+      if (attempt(depth + 1)) return true;
+      used.delete(key(q));
+      path.pop();
+      dirs.pop();
+    }
+    return false;
+  };
+
+  return attempt(0) ? path : null;
+}
+
+interface BranchCell {
+  pt: Pt;
+  depth: number;
+}
+
+/**
+ * Grow closed false branches off already-carved corridors. Branch cells never
+ * touch the solution path (except at their junction) so the route stays unique.
+ */
+function growBranch(
   cells: Cell[][],
   cols: number,
   rows: number,
-  prev: Map<string, string>,
+  used: Set<string>,
   pathSet: Set<string>,
-  budget: number,
-) {
-  const chains = new Map<string, Set<string>>();
-  const chainOf = (key: string) => {
-    let c = chains.get(key);
-    if (!c) {
-      c = new Set(ancestry(prev, key));
-      chains.set(key, c);
-    }
-    return c;
-  };
-
-  const candidates: { cell: Cell; dir: Dir }[] = [];
-  for (const rowCells of cells) {
-    for (const c of rowCells) {
-      if (pathSet.has(`${c.col},${c.row}`)) continue;
-      for (const d of ["E", "S"] as Dir[]) {
-        if (!c.walls[d]) continue;
-        const nc = c.col + DELTA[d].dc;
-        const nr = c.row + DELTA[d].dr;
-        if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
-        if (pathSet.has(`${nc},${nr}`)) continue;
-        candidates.push({ cell: c, dir: d });
+  origin: Pt,
+  maxDepth: number,
+  twistiness: number,
+  out: BranchCell[],
+  startDepth = 1,
+): void {
+  let cur = origin;
+  let from: Dir | null = null;
+  for (let depth = startDepth; depth <= maxDepth; depth++) {
+    let moved = false;
+    for (const d of biasedDirs(from, twistiness)) {
+      const q = { col: cur.col + DELTA[d].dc, row: cur.row + DELTA[d].dr };
+      if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+      if (used.has(key(q))) continue;
+      // never run alongside the solution route, and never touch another corridor
+      let ok = true;
+      for (const nd of DIRS) {
+        const n = { col: q.col + DELTA[nd].dc, row: q.row + DELTA[nd].dr };
+        if (n.col === cur.col && n.row === cur.row) continue;
+        if (pathSet.has(key(n)) || used.has(key(n))) {
+          ok = false;
+          break;
+        }
       }
+      if (!ok) continue;
+      carveBetween(cells, cur, d);
+      used.add(key(q));
+      out.push({ pt: q, depth });
+      cur = q;
+      from = d;
+      moved = true;
+      break;
     }
-  }
-
-  let opened = 0;
-  for (const { cell, dir } of shuffle(candidates)) {
-    if (opened >= budget) break;
-    const nc = cell.col + DELTA[dir].dc;
-    const nr = cell.row + DELTA[dir].dr;
-    const a = chainOf(`${cell.col},${cell.row}`);
-    const b = chainOf(`${nc},${nr}`);
-    // union of both ancestries minus the shared tail is the connecting route
-    const route = new Set<string>();
-    for (const k of a) if (!b.has(k)) route.add(k);
-    for (const k of b) if (!a.has(k)) route.add(k);
-    let safe = true;
-    for (const k of route) {
-      if (pathSet.has(k)) {
-        safe = false;
-        break;
-      }
-    }
-    if (!safe) continue;
-    cell.walls[dir] = false;
-    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
-    opened++;
+    if (!moved) return;
   }
 }
 
-/** How many decoy openings branch off the solution route. */
-function decoyScore(cells: Cell[][], path: { col: number; row: number }[]) {
-  const pathSet = new Set(path.map((p) => `${p.col},${p.row}`));
+function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze {
+  const { cols, rows, targetLength } = levelConfig(level);
+  const cells = makeGrid(cols, rows);
+  const start: Pt = { col: 0, row: rows - 1 };
+
+  let path = walkPath(cols, rows, start, targetLength, shape.twistiness);
+  let length = targetLength;
+  while (!path && length > 3) {
+    length -= 1;
+    path = walkPath(cols, rows, start, length, shape.twistiness);
+  }
+  const route = path ?? [start];
+
+  for (let i = 1; i < route.length; i++) {
+    const a = route[i - 1]!;
+    const b = route[i]!;
+    carveBetween(cells, a, dirBetween(a, b));
+  }
+
+  const pathSet = new Set(route.map(key));
+  const used = new Set(pathSet);
+  const branchCells: BranchCell[] = [];
+
+  // primary false branches off the route
+  const branchTotal = Math.max(1, Math.round((route.length - 1) * shape.decoyDensity * 1.4));
+  const junctionSpots = shuffle(
+    route.slice(0, -1).flatMap((p) => DIRS.map((d) => ({ p, d }))),
+  );
+  let made = 0;
+  for (const { p, d } of junctionSpots) {
+    if (made >= branchTotal) break;
+    const q = { col: p.col + DELTA[d].dc, row: p.row + DELTA[d].dr };
+    if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+    if (used.has(key(q))) continue;
+    // the first branch cell must not brush another corridor
+    let ok = true;
+    for (const nd of DIRS) {
+      const n = { col: q.col + DELTA[nd].dc, row: q.row + DELTA[nd].dr };
+      if (n.col === p.col && n.row === p.row) continue;
+      if (used.has(key(n))) {
+        ok = false;
+        break;
+      }
+    }
+    if (!ok) continue;
+    carveBetween(cells, p, d);
+    used.add(key(q));
+    branchCells.push({ pt: q, depth: 1 });
+    const depth = 1 + Math.floor(Math.random() * Math.max(1, shape.branchDepth));
+    growBranch(cells, cols, rows, used, pathSet, q, depth, shape.twistiness, branchCells, 2);
+    made++;
+  }
+
+  // secondary branches so wrong turns keep branching further in
+  const secondary = Math.round(branchCells.length * shape.decoyDensity * 0.6);
+  for (const { pt, depth } of shuffle(branchCells).slice(0, secondary)) {
+    growBranch(
+      cells,
+      cols,
+      rows,
+      used,
+      pathSet,
+      pt,
+      depth + 1 + Math.floor(Math.random() * Math.max(1, shape.branchDepth - 1)),
+      shape.twistiness,
+      branchCells,
+      depth + 1,
+    );
+  }
+
+  // optional loops between off-route corridors only
+  if (shape.loopiness > 0) {
+    const pairs = shuffle(
+      branchCells.flatMap(({ pt }) =>
+        (["E", "S"] as Dir[]).map((d) => ({ pt, d })),
+      ),
+    );
+    let loops = Math.round(branchCells.length * shape.loopiness * 0.35);
+    for (const { pt, d } of pairs) {
+      if (loops <= 0) break;
+      const q = { col: pt.col + DELTA[d].dc, row: pt.row + DELTA[d].dr };
+      if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
+      if (!used.has(key(q)) || pathSet.has(key(q)) || pathSet.has(key(pt))) continue;
+      if (!cells[pt.row]![pt.col]!.walls[d]) continue;
+      carveBetween(cells, pt, d);
+      loops--;
+    }
+  }
+
+  // decoy goals: deepest dead ends of the false branches
+  const deadEnds = branchCells
+    .filter(({ pt }) => DIRS.filter((d) => !cells[pt.row]![pt.col]!.walls[d]).length === 1)
+    .sort((a, b) => b.depth - a.depth);
+  const decoyGoals = deadEnds.slice(0, Math.max(0, fakeGoals)).map(({ pt }) => pt);
+
+  const goal = route[route.length - 1]!;
+  return { cols, rows, cells, start, goal, path: route, decoyGoals, level };
+}
+
+/** How many false turns branch off the solution route. */
+function decoyScore(cells: Cell[][], path: Pt[]) {
+  const pathSet = new Set(path.map(key));
   let score = 0;
   for (const p of path) {
     const cell = cells[p.row]![p.col]!;
     for (const d of DIRS) {
       if (cell.walls[d]) continue;
-      const key = `${p.col + DELTA[d].dc},${p.row + DELTA[d].dr}`;
-      if (!pathSet.has(key)) score++;
+      const k = `${p.col + DELTA[d].dc},${p.row + DELTA[d].dr}`;
+      if (!pathSet.has(k)) score++;
     }
   }
   return score;
 }
 
-function generateOnce(level: number): Maze {
-  const { cols, rows, targetLength } = levelConfig(level);
-  const cells = makeGrid(cols, rows);
-  const start = { col: 0, row: rows - 1 };
-  carve(cells, cols, rows, start.col, start.row);
-
-  const { dist, prev } = bfs(cells, cols, rows, start);
-
-  // pick the reachable cell whose distance is closest to the target path length
-  let goalKey = `${start.col},${start.row}`;
-  let best = Infinity;
-  for (const [key, d] of dist) {
-    if (d === 0) continue;
-    const score = Math.abs(d - targetLength);
-    if (score < best) {
-      best = score;
-      goalKey = key;
-    }
-  }
-
-  const path: { col: number; row: number }[] = [];
-  let cursor: string | undefined = goalKey;
-  while (cursor) {
-    const [c, r] = cursor.split(",").map(Number);
-    path.unshift({ col: c!, row: r! });
-    cursor = prev.get(cursor);
-  }
-
-  const pathSet = new Set(path.map((p) => `${p.col},${p.row}`));
-  const budget = Math.round(cols * rows * (0.08 + Math.min(level, 20) * 0.012));
-  braid(cells, cols, rows, prev, pathSet, budget);
-
-  // open extra junctions right on the route, but never a shortcut to the goal
-  const goalDist = path.length - 1;
-  const junctionCandidates: { cell: Cell; dir: Dir }[] = [];
-  for (const p of path) {
-    const cell = cells[p.row]![p.col]!;
-    for (const d of DIRS) {
-      if (!cell.walls[d]) continue;
-      const nc = p.col + DELTA[d].dc;
-      const nr = p.row + DELTA[d].dr;
-      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
-      if (pathSet.has(`${nc},${nr}`)) continue;
-      junctionCandidates.push({ cell, dir: d });
-    }
-  }
-  let extra = Math.max(2, Math.round(path.length * 0.6));
-  for (const { cell, dir } of shuffle(junctionCandidates)) {
-    if (extra <= 0) break;
-    const nc = cell.col + DELTA[dir].dc;
-    const nr = cell.row + DELTA[dir].dr;
-    cell.walls[dir] = false;
-    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
-    const check = bfs(cells, cols, rows, start);
-    if ((check.dist.get(goalKey) ?? Infinity) < goalDist) {
-      cell.walls[dir] = true;
-      cells[nr]![nc]!.walls[OPPOSITE[dir]] = true;
-      continue;
-    }
-    extra--;
-  }
-
-  const [gc, gr] = goalKey.split(",").map(Number);
-  return { cols, rows, cells, start, goal: { col: gc!, row: gr! }, path, level };
-}
-
+export const DEFAULT_SHAPE: MazeShape = {
+  decoyDensity: 0.8,
+  branchDepth: 4,
+  loopiness: 0.15,
+  twistiness: 0.7,
+};
 
 /** Generate several layouts and keep the one offering the most false turns. */
-export function generateMaze(level: number): Maze {
+export function generateMaze(
+  level: number,
+  shape: MazeShape = DEFAULT_SHAPE,
+  fakeGoals = 0,
+): Maze {
   let best: Maze | null = null;
   let bestScore = -1;
   for (let i = 0; i < 5; i++) {
-    const candidate = generateOnce(level);
+    const candidate = generateOnce(level, shape, fakeGoals);
     const score = decoyScore(candidate.cells, candidate.path);
     if (score > bestScore) {
       bestScore = score;
@@ -283,11 +339,7 @@ export function generateMaze(level: number): Maze {
   return best!;
 }
 
-
-export function dirBetween(
-  a: { col: number; row: number },
-  b: { col: number; row: number },
-): Dir {
+export function dirBetween(a: Pt, b: Pt): Dir {
   if (b.row < a.row) return "N";
   if (b.row > a.row) return "S";
   if (b.col > a.col) return "E";
@@ -295,7 +347,7 @@ export function dirBetween(
 }
 
 /** Compress the solution path into "3 x North" style steps. */
-export function pathToSteps(path: { col: number; row: number }[]): Step[] {
+export function pathToSteps(path: Pt[]): Step[] {
   const steps: Step[] = [];
   for (let i = 1; i < path.length; i++) {
     const dir = dirBetween(path[i - 1]!, path[i]!);

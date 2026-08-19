@@ -133,6 +133,185 @@ export function LevelSelectPanel({
 }
 
 type TimeKey = "briefingBase" | "briefingPerLevel" | "mazeBase" | "mazePerLevel";
+type Tab = "movement" | "time" | "maze";
+
+const TABS: [Tab, string][] = [
+  ["movement", "Movement"],
+  ["time", "Time"],
+  ["maze", "Maze"],
+];
+
+interface TabProps {
+  settings: GameSettings;
+  onChange: (s: GameSettings) => void;
+}
+
+function MovementTab({ settings, onChange }: TabProps) {
+  const snap = settings.turnStyle === "snap";
+  return (
+    <group>
+      <Label position={[-0.75, 0.66, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+        Turning style
+      </Label>
+      <Button3D
+        label="Snap"
+        onClick={() => onChange({ ...settings, turnStyle: "snap" })}
+        width={0.5}
+        height={0.15}
+        size={0.055}
+        position={[-0.35, 0.48, 0.03]}
+        color={snap ? UI.accentSoft : "#e9e4d9"}
+      />
+      <Button3D
+        label="Smooth"
+        onClick={() => onChange({ ...settings, turnStyle: "smooth" })}
+        width={0.5}
+        height={0.15}
+        size={0.055}
+        position={[0.35, 0.48, 0.03]}
+        color={snap ? "#e9e4d9" : UI.accentSoft}
+      />
+      {snap ? (
+        <group>
+          <Label position={[-0.75, 0.26, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+            Snap angle
+          </Label>
+          {SNAP_ANGLES.map((deg, i) => (
+            <Button3D
+              key={deg}
+              label={`${deg}°`}
+              onClick={() => onChange({ ...settings, snapDegrees: deg })}
+              width={0.4}
+              height={0.15}
+              size={0.055}
+              position={[-0.45 + i * 0.45, 0.08, 0.03]}
+              color={settings.snapDegrees === deg ? UI.accentSoft : "#e9e4d9"}
+            />
+          ))}
+        </group>
+      ) : (
+        <SliderRow
+          position={[0, 0.16, 0.02]}
+          label="Turn speed"
+          valueText={`${settings.smoothDegPerSec}°/s`}
+          value={settings.smoothDegPerSec}
+          min={SMOOTH_TURN_RANGE.min}
+          max={SMOOTH_TURN_RANGE.max}
+          step={SMOOTH_TURN_RANGE.step}
+          onChange={(v) => onChange({ ...settings, smoothDegPerSec: v })}
+        />
+      )}
+    </group>
+  );
+}
+
+function TimeTab({ settings, onChange }: TabProps) {
+  const rows: TimeKey[] = ["briefingBase", "briefingPerLevel", "mazeBase", "mazePerLevel"];
+  return (
+    <group>
+      {rows.map((key, i) => {
+        const r = SETTING_RANGES[key];
+        return (
+          <SliderRow
+            key={key}
+            position={[0, 0.66 - i * 0.24, 0.02]}
+            label={r.label}
+            valueText={formatSeconds(settings[key])}
+            value={settings[key]}
+            min={r.min}
+            max={r.max}
+            step={r.step}
+            onChange={(v) => onChange({ ...settings, [key]: v })}
+          />
+        );
+      })}
+      <Label position={[0, -0.3, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.7}>
+        {`At level 10: ${formatSeconds(briefingSeconds(10, settings))} to study, ${formatSeconds(
+          mazeSeconds(10, settings),
+        )} to escape`}
+      </Label>
+    </group>
+  );
+}
+
+function MazeTab({ settings, onChange }: TabProps) {
+  const shapeKeys: ShapeKey[] = ["decoyDensity", "branchDepth", "loopiness", "twistiness"];
+  const fake = settings.fakeGoalsEnabled;
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  return (
+    <group>
+      <Label position={[-0.75, 0.7, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+        Fake goals
+      </Label>
+      <Button3D
+        label={fake ? "On" : "Off"}
+        onClick={() => onChange({ ...settings, fakeGoalsEnabled: !fake })}
+        width={0.4}
+        height={0.15}
+        size={0.055}
+        position={[0.55, 0.7, 0.03]}
+        color={fake ? UI.accentSoft : "#e9e4d9"}
+      />
+      {fake && (
+        <group>
+          <SliderRow
+            position={[0, 0.46, 0.02]}
+            label="Number of fake goals"
+            valueText={`${settings.fakeGoalCount}`}
+            value={settings.fakeGoalCount}
+            min={FAKE_GOAL_RANGE.min}
+            max={FAKE_GOAL_RANGE.max}
+            step={FAKE_GOAL_RANGE.step}
+            onChange={(v) => onChange({ ...settings, fakeGoalCount: v })}
+          />
+          <Label position={[-0.75, 0.24, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+            Fake goal colour
+          </Label>
+          <Button3D
+            label="Same"
+            onClick={() => onChange({ ...settings, fakeGoalDistinct: false })}
+            width={0.42}
+            height={0.15}
+            size={0.055}
+            position={[0.18, 0.24, 0.03]}
+            color={settings.fakeGoalDistinct ? "#e9e4d9" : UI.accentSoft}
+          />
+          <Button3D
+            label="Distinct"
+            onClick={() => onChange({ ...settings, fakeGoalDistinct: true })}
+            width={0.42}
+            height={0.15}
+            size={0.055}
+            position={[0.64, 0.24, 0.03]}
+            color={settings.fakeGoalDistinct ? UI.accentSoft : "#e9e4d9"}
+          />
+        </group>
+      )}
+      {shapeKeys.map((key, i) => {
+        const r = SHAPE_RANGES[key];
+        const v = settings.mazeShape[key];
+        return (
+          <SliderRow
+            key={key}
+            position={[0, 0.02 - i * 0.22, 0.02]}
+            label={r.label}
+            valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
+            value={v}
+            min={r.min}
+            max={r.max}
+            step={r.step}
+            onChange={(nv) =>
+              onChange({ ...settings, mazeShape: { ...settings.mazeShape, [key]: nv } })
+            }
+          />
+        );
+      })}
+      <Label position={[0, -0.86, 0.02]} size={0.042} color={UI.inkSoft} maxWidth={1.7}>
+        Layout changes apply to the next maze you generate
+      </Label>
+    </group>
+  );
+}
 
 export function SettingsPanel({
   settings,
@@ -143,89 +322,30 @@ export function SettingsPanel({
   onChange: (s: GameSettings) => void;
   onBack: () => void;
 }) {
-  const rows: TimeKey[] = ["briefingBase", "briefingPerLevel", "mazeBase", "mazePerLevel"];
-  const snap = settings.turnStyle === "snap";
+  const [tab, setTab] = useState<Tab>("movement");
   return (
     <group position={PANEL_POS}>
       <Panel width={1.9} height={2.35}>
         <Label position={[0, 1.04, 0.02]} size={0.1}>
           Settings
         </Label>
-        {rows.map((key, i) => {
-          const r = SETTING_RANGES[key];
-          return (
-            <SliderRow
-              key={key}
-              position={[0, 0.8 - i * 0.24, 0.02]}
-              label={r.label}
-              valueText={formatSeconds(settings[key])}
-              value={settings[key]}
-              min={r.min}
-              max={r.max}
-              step={r.step}
-              onChange={(v) => onChange({ ...settings, [key]: v })}
-            />
-          );
-        })}
-        <Label position={[0, -0.12, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.7}>
-          {`At level 10: ${formatSeconds(briefingSeconds(10, settings))} to study, ${formatSeconds(
-            mazeSeconds(10, settings),
-          )} to escape`}
-        </Label>
-
-        <Label position={[-0.75, -0.29, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
-          Turning
-        </Label>
-        <Button3D
-          label="Snap"
-          onClick={() => onChange({ ...settings, turnStyle: "snap" })}
-          width={0.5}
-          height={0.15}
-          size={0.055}
-          position={[-0.35, -0.46, 0.03]}
-          color={snap ? UI.accentSoft : "#e9e4d9"}
-        />
-        <Button3D
-          label="Smooth"
-          onClick={() => onChange({ ...settings, turnStyle: "smooth" })}
-          width={0.5}
-          height={0.15}
-          size={0.055}
-          position={[0.35, -0.46, 0.03]}
-          color={snap ? "#e9e4d9" : UI.accentSoft}
-        />
-
-        {snap ? (
-          <group>
-            <Label position={[-0.75, -0.66, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
-              Snap angle
-            </Label>
-            {SNAP_ANGLES.map((deg, i) => (
-              <Button3D
-                key={deg}
-                label={`${deg}°`}
-                onClick={() => onChange({ ...settings, snapDegrees: deg })}
-                width={0.4}
-                height={0.15}
-                size={0.055}
-                position={[-0.45 + i * 0.45, -0.82, 0.03]}
-                color={settings.snapDegrees === deg ? UI.accentSoft : "#e9e4d9"}
-              />
-            ))}
-          </group>
-        ) : (
-          <SliderRow
-            position={[0, -0.74, 0.02]}
-            label="Turn speed"
-            valueText={`${settings.smoothDegPerSec}°/s`}
-            value={settings.smoothDegPerSec}
-            min={SMOOTH_TURN_RANGE.min}
-            max={SMOOTH_TURN_RANGE.max}
-            step={SMOOTH_TURN_RANGE.step}
-            onChange={(v) => onChange({ ...settings, smoothDegPerSec: v })}
+        {TABS.map(([id, label], i) => (
+          <Button3D
+            key={id}
+            label={label}
+            onClick={() => setTab(id)}
+            width={0.55}
+            height={0.16}
+            size={0.055}
+            position={[-0.6 + i * 0.6, 0.86, 0.03]}
+            color={tab === id ? UI.accentSoft : "#e9e4d9"}
           />
-        )}
-
+        ))}
+        <group position={[0, 0, 0]}>
+          {tab === "movement" && <MovementTab settings={settings} onChange={onChange} />}
+          {tab === "time" && <TimeTab settings={settings} onChange={onChange} />}
+          {tab === "maze" && <MazeTab settings={settings} onChange={onChange} />}
+        </group>
         <Button3D
           label="Back"
           onClick={onBack}
@@ -237,6 +357,7 @@ export function SettingsPanel({
     </group>
   );
 }
+
 
 
 export function HighscoresPanel({

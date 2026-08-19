@@ -92,6 +92,7 @@ export default function MazeGame() {
   const [clearedMs, setClearedMs] = useState(0);
   const runLeftRef = useRef(0);
   const startedAt = useRef(0);
+  const visited = useRef<Set<string>>(new Set());
 
   const maze = useMemo(
     () =>
@@ -142,11 +143,12 @@ export default function MazeGame() {
 
   const beginRun = useCallback(() => {
     const total = mazeSeconds(level, settings) * 1000;
+    visited.current = new Set([`${maze.start.col},${maze.start.row}`]);
     runLeftRef.current = total;
     setRunLeft(total);
     startedAt.current = performance.now();
     setPhase("playing");
-  }, [level, settings]);
+  }, [level, settings, maze]);
 
   // briefing countdown
   useEffect(() => {
@@ -199,10 +201,13 @@ export default function MazeGame() {
         setPhase("cleared");
         return;
       }
-      if (!pathSet.has(key)) {
+      // backtracking onto an already visited cell is always safe
+      if (!pathSet.has(key) && !visited.current.has(key)) {
         setFailReason("You stepped off the route.");
         setPhase("failed");
+        return;
       }
+      visited.current.add(key);
     },
     [phase, maze, pathSet, level, recordScore],
   );
@@ -336,7 +341,7 @@ export default function MazeGame() {
 
       {inMaze && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-card/85 px-4 py-1.5 text-center text-xs text-muted-foreground shadow-sm">
-          Trigger to teleport one cell · thumbstick forward to step, sideways to turn · hold X for the time left
+          Trigger to teleport one cell · thumbstick forward to step, back to step back, sideways to turn · hold X for the time left
         </div>
       )}
     </div>

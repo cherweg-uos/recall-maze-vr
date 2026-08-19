@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dir, Maze } from "@/lib/maze";
-import { DELTA } from "@/lib/maze";
+import { DELTA, dirBetween } from "@/lib/maze";
 import { formatClock, type GameSettings } from "@/lib/gameSettings";
 import { UI } from "./vr/ui3d";
 import { TeleportFloor, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";

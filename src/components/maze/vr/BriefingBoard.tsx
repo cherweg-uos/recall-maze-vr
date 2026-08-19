@@ -19,10 +19,14 @@ interface Props {
 export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Props) {
   const group = useRef<THREE.Group>(null);
   const grab = useRef<{ hand: THREE.Object3D; offset: THREE.Matrix4 } | null>(null);
+  const touched = useRef(false);
   const [held, setHeld] = useState(false);
+
+  useFacePlayer(group, { distance: 1.6, height: 1.45, skipRef: touched });
 
   const left = useXRInputSourceState("controller", "left");
   const right = useXRInputSourceState("controller", "right");
+
 
   const texture = useMemo(() => {
     const tex = new THREE.CanvasTexture(drawMazeMap(maze));

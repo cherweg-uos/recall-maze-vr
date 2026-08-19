@@ -293,7 +293,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, -0.12 - i * 0.24, 0.02]}
+            position={[0, -0.12 - i * 0.26, 0.02]}
             label={r.label}
             valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
             value={v}
@@ -322,8 +322,8 @@ export function SettingsPanel({
   const [tab, setTab] = useState<Tab>("movement");
   return (
     <group position={PANEL_POS}>
-      <Panel width={1.9} height={2.35}>
-        <Label position={[0, 1.04, 0.02]} size={0.1}>
+      <Panel width={1.9} height={2.7}>
+        <Label position={[0, 1.2, 0.02]} size={0.1}>
           Settings
         </Label>
         {TABS.map(([id, label], i) => (
@@ -334,7 +334,7 @@ export function SettingsPanel({
             width={0.55}
             height={0.16}
             size={0.055}
-            position={[-0.6 + i * 0.6, 0.86, 0.03]}
+            position={[-0.6 + i * 0.6, 1.0, 0.03]}
             color={tab === id ? UI.accentSoft : "#e9e4d9"}
           />
         ))}
@@ -348,7 +348,7 @@ export function SettingsPanel({
           onClick={onBack}
           width={0.6}
           height={0.18}
-          position={[0, -1.05, 0.03]}
+          position={[0, -1.2, 0.03]}
         />
       </Panel>
     </group>

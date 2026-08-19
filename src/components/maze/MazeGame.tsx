@@ -201,10 +201,13 @@ export default function MazeGame() {
         setPhase("cleared");
         return;
       }
-      if (!pathSet.has(key)) {
+      // backtracking onto an already visited cell is always safe
+      if (!pathSet.has(key) && !visited.current.has(key)) {
         setFailReason("You stepped off the route.");
         setPhase("failed");
+        return;
       }
+      visited.current.add(key);
     },
     [phase, maze, pathSet, level, recordScore],
   );

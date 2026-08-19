@@ -6,6 +6,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import { DIR_LABEL, pathToSteps, type Maze } from "@/lib/maze";
 import { drawMazeMap } from "@/lib/mazeTexture";
 import { Button3D, Label, Panel, UI } from "./ui3d";
+import { useFacePlayer } from "./facePlayer";
 
 interface Props {
   maze: Maze;

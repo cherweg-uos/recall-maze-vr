@@ -161,7 +161,6 @@ function growBranch(
   cols: number,
   rows: number,
   used: Set<string>,
-  pathSet: Set<string>,
   origin: Pt,
   maxDepth: number,
   twistiness: number,
@@ -226,7 +225,7 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
     used.add(key(q));
     branchCells.push({ pt: q, depth: 1 });
     const depth = 1 + Math.floor(Math.random() * Math.max(1, shape.branchDepth));
-    growBranch(cells, cols, rows, used, pathSet, q, depth, shape.twistiness, branchCells, 2);
+    growBranch(cells, cols, rows, used, q, depth, shape.twistiness, branchCells, 2);
     made++;
   }
 
@@ -238,7 +237,6 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
       cols,
       rows,
       used,
-      pathSet,
       pt,
       depth + 1 + Math.floor(Math.random() * Math.max(1, shape.branchDepth - 1)),
       shape.twistiness,

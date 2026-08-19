@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Button3D, Label, Panel, SliderRow, UI } from "./ui3d";
 import {
+  FAKE_GOAL_RANGE,
   MAX_LEVEL,
   MIN_LEVEL,
   SETTING_RANGES,
+  SHAPE_RANGES,
   SMOOTH_TURN_RANGE,
   SNAP_ANGLES,
   briefingSeconds,
@@ -11,10 +14,12 @@ import {
   mazeSeconds,
   type GameSettings,
   type HighscoreEntry,
+  type ShapeKey,
 } from "@/lib/gameSettings";
 import { levelConfig } from "@/lib/maze";
 
 const PANEL_POS: [number, number, number] = [0, 1.45, -2.6];
+
 
 export function MenuRoom() {
   return (

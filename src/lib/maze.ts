@@ -106,12 +106,102 @@ function bfs(cells: Cell[][], cols: number, rows: number, from: { col: number; r
 
 /** Grid size and required path length grow with the level (levels 3–20). */
 export function levelConfig(level: number) {
-  const size = Math.min(4 + Math.floor(level / 2), 14);
+  const size = Math.min(4 + Math.floor(level * 0.6), 15);
   const targetLength = 4 + Math.max(0, level - 3) * 2;
   return { cols: size, rows: size, targetLength };
 }
 
-export function generateMaze(level: number): Maze {
+/** Walk up the BFS tree from a cell to the root, collecting keys. */
+function ancestry(prev: Map<string, string>, key: string): string[] {
+  const chain: string[] = [key];
+  let cur = prev.get(key);
+  while (cur) {
+    chain.push(cur);
+    cur = prev.get(cur);
+  }
+  return chain;
+}
+
+/**
+ * Open extra doorways between off-route cells so wrong turns lead into long,
+ * looping corridors instead of obvious two-step dead ends. An opening is only
+ * accepted when the existing route between the two cells never touches the
+ * solution path, which keeps the solution unique.
+ */
+function braid(
+  cells: Cell[][],
+  cols: number,
+  rows: number,
+  prev: Map<string, string>,
+  pathSet: Set<string>,
+  budget: number,
+) {
+  const chains = new Map<string, Set<string>>();
+  const chainOf = (key: string) => {
+    let c = chains.get(key);
+    if (!c) {
+      c = new Set(ancestry(prev, key));
+      chains.set(key, c);
+    }
+    return c;
+  };
+
+  const candidates: { cell: Cell; dir: Dir }[] = [];
+  for (const rowCells of cells) {
+    for (const c of rowCells) {
+      if (pathSet.has(`${c.col},${c.row}`)) continue;
+      for (const d of ["E", "S"] as Dir[]) {
+        if (!c.walls[d]) continue;
+        const nc = c.col + DELTA[d].dc;
+        const nr = c.row + DELTA[d].dr;
+        if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+        if (pathSet.has(`${nc},${nr}`)) continue;
+        candidates.push({ cell: c, dir: d });
+      }
+    }
+  }
+
+  let opened = 0;
+  for (const { cell, dir } of shuffle(candidates)) {
+    if (opened >= budget) break;
+    const nc = cell.col + DELTA[dir].dc;
+    const nr = cell.row + DELTA[dir].dr;
+    const a = chainOf(`${cell.col},${cell.row}`);
+    const b = chainOf(`${nc},${nr}`);
+    // union of both ancestries minus the shared tail is the connecting route
+    const route = new Set<string>();
+    for (const k of a) if (!b.has(k)) route.add(k);
+    for (const k of b) if (!a.has(k)) route.add(k);
+    let safe = true;
+    for (const k of route) {
+      if (pathSet.has(k)) {
+        safe = false;
+        break;
+      }
+    }
+    if (!safe) continue;
+    cell.walls[dir] = false;
+    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+    opened++;
+  }
+}
+
+/** How many decoy openings branch off the solution route. */
+function decoyScore(cells: Cell[][], path: { col: number; row: number }[]) {
+  const pathSet = new Set(path.map((p) => `${p.col},${p.row}`));
+  let score = 0;
+  for (const p of path) {
+    const cell = cells[p.row]![p.col]!;
+    for (const d of DIRS) {
+      if (cell.walls[d]) continue;
+      const key = `${p.col + DELTA[d].dc},${p.row + DELTA[d].dr}`;
+      if (!pathSet.has(key)) score++;
+    }
+  }
+  return score;
+}
+
+function generateOnce(level: number): Maze {
   const { cols, rows, targetLength } = levelConfig(level);
   const cells = makeGrid(cols, rows);
   const start = { col: 0, row: rows - 1 };
@@ -139,9 +229,60 @@ export function generateMaze(level: number): Maze {
     cursor = prev.get(cursor);
   }
 
+  const pathSet = new Set(path.map((p) => `${p.col},${p.row}`));
+  const budget = Math.round(cols * rows * (0.08 + Math.min(level, 20) * 0.012));
+  braid(cells, cols, rows, prev, pathSet, budget);
+
+  // open extra junctions right on the route, but never a shortcut to the goal
+  const goalDist = path.length - 1;
+  const junctionCandidates: { cell: Cell; dir: Dir }[] = [];
+  for (const p of path) {
+    const cell = cells[p.row]![p.col]!;
+    for (const d of DIRS) {
+      if (!cell.walls[d]) continue;
+      const nc = p.col + DELTA[d].dc;
+      const nr = p.row + DELTA[d].dr;
+      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+      if (pathSet.has(`${nc},${nr}`)) continue;
+      junctionCandidates.push({ cell, dir: d });
+    }
+  }
+  let extra = Math.max(2, Math.round(path.length * 0.6));
+  for (const { cell, dir } of shuffle(junctionCandidates)) {
+    if (extra <= 0) break;
+    const nc = cell.col + DELTA[dir].dc;
+    const nr = cell.row + DELTA[dir].dr;
+    cell.walls[dir] = false;
+    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+    const check = bfs(cells, cols, rows, start);
+    if ((check.dist.get(goalKey) ?? Infinity) < goalDist) {
+      cell.walls[dir] = true;
+      cells[nr]![nc]!.walls[OPPOSITE[dir]] = true;
+      continue;
+    }
+    extra--;
+  }
+
   const [gc, gr] = goalKey.split(",").map(Number);
   return { cols, rows, cells, start, goal: { col: gc!, row: gr! }, path, level };
 }
+
+
+/** Generate several layouts and keep the one offering the most false turns. */
+export function generateMaze(level: number): Maze {
+  let best: Maze | null = null;
+  let bestScore = -1;
+  for (let i = 0; i < 5; i++) {
+    const candidate = generateOnce(level);
+    const score = decoyScore(candidate.cells, candidate.path);
+    if (score > bestScore) {
+      bestScore = score;
+      best = candidate;
+    }
+  }
+  return best!;
+}
+
 
 export function dirBetween(
   a: { col: number; row: number },

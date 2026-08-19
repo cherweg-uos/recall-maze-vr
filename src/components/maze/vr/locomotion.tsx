@@ -2,20 +2,31 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useXRInputSourceState } from "@react-three/xr";
 import { useRef, useState } from "react";
 import { UI } from "./ui3d";
+import type { GameSettings } from "@/lib/gameSettings";
 
-export const SNAP_TURN = Math.PI / 6; // 30 degrees
+export const SNAP_TURN = Math.PI / 6; // 30 degrees (fallback)
 const DEAD = 0.75;
 const RECENTER = 0.25;
+const SMOOTH_DEAD = 0.18;
+
+/** Radians rotated per snap turn for the current settings. */
+export function snapAngle(settings: GameSettings) {
+  return ((settings.snapDegrees ?? 30) * Math.PI) / 180;
+}
 
 /**
- * Thumbstick locomotion: sideways push snaps the view, forward push triggers a
+ * Thumbstick locomotion. Sideways push either snaps the view by the configured
+ * angle or rotates smoothly at the configured rate; forward push triggers a
  * step. Both need a generous deadzone plus a return to centre before re-firing.
  */
 export function useSticks({
-  onTurn,
+  settings,
+  onYaw,
   onForward,
 }: {
-  onTurn: (dir: -1 | 1) => void;
+  settings: GameSettings;
+  /** rotation delta in radians (positive = turn right) */
+  onYaw: (radians: number) => void;
   onForward?: (() => void) | undefined;
 }) {
   const left = useXRInputSourceState("controller", "left");
@@ -23,7 +34,7 @@ export function useSticks({
   const armedX = useRef(true);
   const armedY = useRef(true);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     let x = 0;
     let y = 0;
     for (const c of [left, right]) {
@@ -33,9 +44,15 @@ export function useSticks({
       if (Math.abs(g.yAxis ?? 0) > Math.abs(y)) y = g.yAxis ?? 0;
     }
 
-    if (armedX.current && Math.abs(x) > DEAD) {
+    if (settings.turnStyle === "smooth") {
+      if (Math.abs(x) > SMOOTH_DEAD) {
+        const scaled = (Math.abs(x) - SMOOTH_DEAD) / (1 - SMOOTH_DEAD);
+        const rate = ((settings.smoothDegPerSec ?? 120) * Math.PI) / 180;
+        onYaw(Math.sign(x) * scaled * rate * Math.min(delta, 0.1));
+      }
+    } else if (armedX.current && Math.abs(x) > DEAD) {
       armedX.current = false;
-      onTurn(x > 0 ? 1 : -1);
+      onYaw(Math.sign(x) * snapAngle(settings));
     } else if (Math.abs(x) < RECENTER) {
       armedX.current = true;
     }
@@ -48,6 +65,7 @@ export function useSticks({
     }
   });
 }
+
 
 export interface TeleportTarget {
   x: number;

@@ -5,9 +5,9 @@ import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dir, Maze } from "@/lib/maze";
 import { DELTA } from "@/lib/maze";
-import { formatClock } from "@/lib/gameSettings";
+import { formatClock, type GameSettings } from "@/lib/gameSettings";
 import { UI } from "./vr/ui3d";
-import { SNAP_TURN, TeleportFloor, useSticks, type TeleportTarget } from "./vr/locomotion";
+import { TeleportFloor, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";
 
 export const CELL = 3;
 const WALL_H = 2.5;
@@ -66,12 +66,13 @@ function useKeyPress(handler: (code: string) => void) {
 
 interface PlayerProps {
   maze: Maze;
+  settings: GameSettings;
   onCell: (col: number, row: number) => void;
   /** ms remaining, shown while the X button (or desktop X key) is held */
   timeLeftRef: React.RefObject<number>;
 }
 
-function Player({ maze, onCell, timeLeftRef }: PlayerProps) {
+function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   const originRef = useRef<THREE.Group>(null);
   const hudRef = useRef<THREE.Group>(null);
   const hudTextRef = useRef<{ text: string } | null>(null);
@@ -128,11 +129,14 @@ function Player({ maze, onCell, timeLeftRef }: PlayerProps) {
     goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
   }, [currentHeading, goTo, maze]);
 
-  const turn = useCallback((d: -1 | 1) => {
-    yaw.current -= d * SNAP_TURN;
-  }, []);
+  const turn = useCallback(
+    (d: -1 | 1) => {
+      yaw.current -= d * snapAngle(settings);
+    },
+    [settings],
+  );
 
-  useSticks({ onTurn: turn, onForward: stepForward });
+  useSticks({ settings, onYaw: (r) => (yaw.current -= r), onForward: stepForward });
 
   useKeyPress((code) => {
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
@@ -258,12 +262,13 @@ function Goal({ maze }: { maze: Maze }) {
 
 interface WorldProps {
   maze: Maze;
+  settings: GameSettings;
   onCell: (col: number, row: number) => void;
   timeLeftRef: React.RefObject<number>;
 }
 
 /** The playable maze: floor, walls, goal and the player rig. */
-export function MazeWorld({ maze, onCell, timeLeftRef }: WorldProps) {
+export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -272,7 +277,7 @@ export function MazeWorld({ maze, onCell, timeLeftRef }: WorldProps) {
       </mesh>
       <Walls maze={maze} />
       <Goal maze={maze} />
-      <Player maze={maze} onCell={onCell} timeLeftRef={timeLeftRef} />
+      <Player maze={maze} settings={settings} onCell={onCell} timeLeftRef={timeLeftRef} />
     </group>
   );
 }

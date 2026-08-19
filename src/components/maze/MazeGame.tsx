@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { generateMaze, pathToSteps } from "@/lib/maze";
 import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
-import { SNAP_TURN, TeleportFloor, useSticks } from "./vr/locomotion";
+import { TeleportFloor, useSticks } from "./vr/locomotion";
 import {
   HighscoresPanel,
   LevelSelectPanel,
@@ -43,13 +43,13 @@ type Phase =
 const store = createXRStore({ emulate: false });
 
 /** Menu locomotion: free teleport on the floor plus 30° snap turning. */
-function MenuRig() {
+function MenuRig({ settings }: { settings: GameSettings }) {
   const { camera } = useThree();
   const originRef = useRef<THREE.Group>(null);
   const pos = useRef(new THREE.Vector2(0, 0));
   const yaw = useRef(0);
 
-  useSticks({ onTurn: (d) => (yaw.current -= d * SNAP_TURN) });
+  useSticks({ settings, onYaw: (r) => (yaw.current -= r) });
 
   useFrame((state) => {
     if (originRef.current) {
@@ -215,11 +215,11 @@ export default function MazeGame() {
           <directionalLight position={[12, 18, 8]} intensity={1.1} castShadow />
 
           {inMaze ? (
-            <MazeWorld maze={maze} onCell={handleCell} timeLeftRef={runLeftRef} />
+            <MazeWorld maze={maze} settings={settings} onCell={handleCell} timeLeftRef={runLeftRef} />
           ) : (
             <>
               <MenuRoom />
-              <MenuRig />
+              <MenuRig settings={settings} />
               {phase === "title" && (
                 <TitlePanel
                   onStart={() => beginBriefing(MIN_LEVEL)}
@@ -311,7 +311,7 @@ export default function MazeGame() {
 
       {inMaze && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-card/85 px-4 py-1.5 text-center text-xs text-muted-foreground shadow-sm">
-          Trigger to teleport one cell · thumbstick forward to step, sideways to turn 30° · hold X for the time left
+          Trigger to teleport one cell · thumbstick forward to step, sideways to turn · hold X for the time left
         </div>
       )}
     </div>

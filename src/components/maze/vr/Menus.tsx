@@ -18,7 +18,8 @@ import {
 } from "@/lib/gameSettings";
 import { levelConfig } from "@/lib/maze";
 
-const PANEL_POS: [number, number, number] = [0, 1.45, -2.6];
+/** Panels render at the origin of a FacingAnchor, which puts them in front of the player. */
+const PANEL_POS: [number, number, number] = [0, 0, 0];
 
 
 export function MenuRoom() {

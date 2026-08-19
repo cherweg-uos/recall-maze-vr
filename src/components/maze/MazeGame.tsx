@@ -231,26 +231,36 @@ export default function MazeGame() {
               <MenuRoom />
               <MenuRig settings={settings} />
               {phase === "title" && (
-                <TitlePanel
-                  onStart={() => beginBriefing(MIN_LEVEL)}
-                  onLevelSelect={() => setPhase("levels")}
-                  onSettings={() => setPhase("settings")}
-                  onHighscores={() => setPhase("scores")}
-                  onExit={exitVR}
-                />
+                <FacingAnchor>
+                  <TitlePanel
+                    onStart={() => beginBriefing(MIN_LEVEL)}
+                    onLevelSelect={() => setPhase("levels")}
+                    onSettings={() => setPhase("settings")}
+                    onHighscores={() => setPhase("scores")}
+                    onExit={exitVR}
+                  />
+                </FacingAnchor>
               )}
               {phase === "levels" && (
-                <LevelSelectPanel
-                  level={level}
-                  onLevel={setLevel}
-                  onStart={() => beginBriefing(level)}
-                  onBack={backToTitle}
-                />
+                <FacingAnchor>
+                  <LevelSelectPanel
+                    level={level}
+                    onLevel={setLevel}
+                    onStart={() => beginBriefing(level)}
+                    onBack={backToTitle}
+                  />
+                </FacingAnchor>
               )}
               {phase === "settings" && (
-                <SettingsPanel settings={settings} onChange={updateSettings} onBack={backToTitle} />
+                <FacingAnchor>
+                  <SettingsPanel settings={settings} onChange={updateSettings} onBack={backToTitle} />
+                </FacingAnchor>
               )}
-              {phase === "scores" && <HighscoresPanel scores={scores} onBack={backToTitle} />}
+              {phase === "scores" && (
+                <FacingAnchor>
+                  <HighscoresPanel scores={scores} onBack={backToTitle} />
+                </FacingAnchor>
+              )}
               {phase === "briefing" && (
                 <BriefingBoard
                   maze={maze}
@@ -261,23 +271,27 @@ export default function MazeGame() {
                 />
               )}
               {phase === "failed" && (
-                <ResultPanel
-                  danger
-                  title="Run failed"
-                  subtitle={`${failReason} Restarting generates a new layout at level ${level}.`}
-                  primaryLabel="Restart level"
-                  onPrimary={() => beginBriefing(level)}
-                  onTitle={backToTitle}
-                />
+                <FacingAnchor>
+                  <ResultPanel
+                    danger
+                    title="Run failed"
+                    subtitle={`${failReason} Restarting generates a new layout at level ${level}.`}
+                    primaryLabel="Restart level"
+                    onPrimary={() => beginBriefing(level)}
+                    onTitle={backToTitle}
+                  />
+                </FacingAnchor>
               )}
               {phase === "cleared" && (
-                <ResultPanel
-                  title={`Level ${level} cleared`}
-                  subtitle={`Time ${formatClock(clearedMs)} · ${steps.length} turns memorised`}
-                  primaryLabel="Next maze"
-                  onPrimary={() => beginBriefing(level + 1)}
-                  onTitle={backToTitle}
-                />
+                <FacingAnchor>
+                  <ResultPanel
+                    title={`Level ${level} cleared`}
+                    subtitle={`Time ${formatClock(clearedMs)} · ${steps.length} turns memorised`}
+                    primaryLabel="Next maze"
+                    onPrimary={() => beginBriefing(level + 1)}
+                    onTitle={backToTitle}
+                  />
+                </FacingAnchor>
               )}
             </>
           )}

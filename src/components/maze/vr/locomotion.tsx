@@ -62,6 +62,9 @@ export function useSticks({
     if (armedY.current && y < -DEAD) {
       armedY.current = false;
       onForward?.();
+    } else if (armedY.current && y > DEAD) {
+      armedY.current = false;
+      onBack?.();
     } else if (Math.abs(y) < RECENTER) {
       armedY.current = true;
     }

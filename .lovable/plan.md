@@ -1,12 +1,18 @@
 # Maze polish: tighter corridors, fixed panel placement, fake goals
 
-## 1. Closed corridors again
-The generator currently opens two extra sets of doorways (a "braid" pass plus a large junction pass sized at 60% of the path length), which produces wide open areas instead of corridors. Rework it so the maze stays a corridor maze while remaining hard to memorise:
+## 1. Closed corridors again — sculpt pass that also adds walls
+Yes, that works and it is the better approach. Instead of a braid pass that only opens doors (which is what turns the grid into open rooms), replace it with a sculpt pass that both opens and closes walls, with a hard rule: every off-path cell may have at most 2 open sides. That single rule guarantees each side branch reads as a straight corridor or a corner with one entrance, never a room.
 
-- Drop the braid/loop pass entirely (or cap it to a couple of openings at the highest levels only).
-- Keep decoy junctions, but limit them to a small number scaled by level (roughly 1 per 4 path cells at level 3, up to 1 per 2 at level 20), and only where the neighbour cell is not already reachable through a nearby opening — so each false turn reads as a distinct corridor mouth.
-- Add a check that rejects an opening if it would give a cell more than 3 open sides, which is what creates the "open room" feel.
-- Keep the existing rule that no opening may shorten the route to the goal, and keep the best-of-N candidate scoring, scoring on number of false corridor mouths rather than raw openings.
+How the pass works:
+
+- Carve the perfect maze and compute the solution path as today.
+- Sculpt off-path cells: walk all cells not on the solution path and, wherever a cell has 3 or 4 open sides, close openings back up until only 2 remain. Openings are chosen for closing at random, but the opening that connects the branch back toward its entrance is kept, so the branch stays reachable and does not become an isolated pocket.
+- Decoy entrances: from each chosen point on the solution path, open exactly one door into an off-path cell, and only when that neighbour still has a free side afterwards under the 2-open-sides rule. Number of entrances scales with level (roughly 1 per 4 path cells at level 3 up to 1 per 2 at level 20).
+- Corridor growth: after opening an entrance, extend that branch a few cells (level-scaled length) by opening one door per step in a single direction with occasional 90° corners, always respecting the 2-open-sides cap, so wrong turns run several cells before dying.
+- Path cells keep at most one decoy door each, so a junction is a clean T rather than a crossroads.
+- Preserve the existing guarantees: no opening may shorten the route to the goal (BFS re-check), the solution stays the recorded shortest route, and the best-of-N candidate pick now scores on number of decoy corridor mouths plus their average length rather than raw openings.
+- Closing walls never touches a wall between two solution-path cells or a wall on the branch's own entrance chain, so connectivity of everything the player can legitimately reach is unchanged.
+
 
 ## 2. Constant panel placement
 Every menu, briefing, result and fail panel should appear at a fixed distance and height directly in front of the player at the moment the phase starts, and stay there.

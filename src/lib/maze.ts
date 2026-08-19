@@ -233,9 +233,40 @@ function generateOnce(level: number): Maze {
   const budget = Math.round(cols * rows * (0.08 + Math.min(level, 20) * 0.012));
   braid(cells, cols, rows, prev, pathSet, budget);
 
+  // open extra junctions right on the route, but never a shortcut to the goal
+  const goalDist = path.length - 1;
+  const junctionCandidates: { cell: Cell; dir: Dir }[] = [];
+  for (const p of path) {
+    const cell = cells[p.row]![p.col]!;
+    for (const d of DIRS) {
+      if (!cell.walls[d]) continue;
+      const nc = p.col + DELTA[d].dc;
+      const nr = p.row + DELTA[d].dr;
+      if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+      if (pathSet.has(`${nc},${nr}`)) continue;
+      junctionCandidates.push({ cell, dir: d });
+    }
+  }
+  let extra = Math.max(2, Math.round(path.length * 0.6));
+  for (const { cell, dir } of shuffle(junctionCandidates)) {
+    if (extra <= 0) break;
+    const nc = cell.col + DELTA[dir].dc;
+    const nr = cell.row + DELTA[dir].dr;
+    cell.walls[dir] = false;
+    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+    const check = bfs(cells, cols, rows, start);
+    if ((check.dist.get(goalKey) ?? Infinity) < goalDist) {
+      cell.walls[dir] = true;
+      cells[nr]![nc]!.walls[OPPOSITE[dir]] = true;
+      continue;
+    }
+    extra--;
+  }
+
   const [gc, gr] = goalKey.split(",").map(Number);
   return { cols, rows, cells, start, goal: { col: gc!, row: gr! }, path, level };
 }
+
 
 /** Generate several layouts and keep the one offering the most false turns. */
 export function generateMaze(level: number): Maze {

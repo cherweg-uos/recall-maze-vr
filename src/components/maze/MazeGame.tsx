@@ -148,7 +148,7 @@ export default function MazeGame() {
     setRunLeft(total);
     startedAt.current = performance.now();
     setPhase("playing");
-  }, [level, settings]);
+  }, [level, settings, maze]);
 
   // briefing countdown
   useEffect(() => {

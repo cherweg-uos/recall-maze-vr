@@ -92,6 +92,7 @@ export default function MazeGame() {
   const [clearedMs, setClearedMs] = useState(0);
   const runLeftRef = useRef(0);
   const startedAt = useRef(0);
+  const visited = useRef<Set<string>>(new Set());
 
   const maze = useMemo(
     () =>

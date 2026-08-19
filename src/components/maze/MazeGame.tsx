@@ -6,6 +6,7 @@ import { generateMaze, pathToSteps } from "@/lib/maze";
 import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, useSticks } from "./vr/locomotion";
+import { FacingAnchor } from "./vr/facePlayer";
 import {
   HighscoresPanel,
   LevelSelectPanel,

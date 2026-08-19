@@ -235,7 +235,13 @@ function TimeTab({ settings, onChange }: TabProps) {
 }
 
 function MazeTab({ settings, onChange }: TabProps) {
-  const shapeKeys: ShapeKey[] = ["decoyDensity", "branchDepth", "loopiness", "twistiness"];
+  const shapeKeys: ShapeKey[] = [
+    "decoyDensity",
+    "branchDepth",
+    "loopiness",
+    "twistiness",
+    "fillCoverage",
+  ];
   const fake = settings.fakeGoalsEnabled;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (

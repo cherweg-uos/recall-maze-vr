@@ -408,6 +408,7 @@ export const DEFAULT_SHAPE: MazeShape = {
   branchDepth: 4,
   loopiness: 0.15,
   twistiness: 0.7,
+  fillCoverage: 1,
 };
 
 /** Generate several layouts and keep the one offering the most false turns. */

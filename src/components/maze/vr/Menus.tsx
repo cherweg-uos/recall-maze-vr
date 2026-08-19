@@ -240,7 +240,7 @@ function MazeTab({ settings, onChange }: TabProps) {
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <group>
-      <Label position={[-0.75, 0.7, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+      <Label position={[-0.75, 0.62, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
         Fake goals
       </Label>
       <Button3D
@@ -249,13 +249,13 @@ function MazeTab({ settings, onChange }: TabProps) {
         width={0.4}
         height={0.15}
         size={0.055}
-        position={[0.55, 0.7, 0.03]}
+        position={[0.55, 0.62, 0.03]}
         color={fake ? UI.accentSoft : "#e9e4d9"}
       />
       {fake && (
         <group>
           <SliderRow
-            position={[0, 0.46, 0.02]}
+            position={[0, 0.38, 0.02]}
             label="Number of fake goals"
             valueText={`${settings.fakeGoalCount}`}
             value={settings.fakeGoalCount}
@@ -264,7 +264,7 @@ function MazeTab({ settings, onChange }: TabProps) {
             step={FAKE_GOAL_RANGE.step}
             onChange={(v) => onChange({ ...settings, fakeGoalCount: v })}
           />
-          <Label position={[-0.75, 0.24, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+          <Label position={[-0.75, 0.12, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
             Fake goal colour
           </Label>
           <Button3D
@@ -273,7 +273,7 @@ function MazeTab({ settings, onChange }: TabProps) {
             width={0.42}
             height={0.15}
             size={0.055}
-            position={[0.18, 0.24, 0.03]}
+            position={[0.18, 0.12, 0.03]}
             color={settings.fakeGoalDistinct ? "#e9e4d9" : UI.accentSoft}
           />
           <Button3D
@@ -282,7 +282,7 @@ function MazeTab({ settings, onChange }: TabProps) {
             width={0.42}
             height={0.15}
             size={0.055}
-            position={[0.64, 0.24, 0.03]}
+            position={[0.64, 0.12, 0.03]}
             color={settings.fakeGoalDistinct ? UI.accentSoft : "#e9e4d9"}
           />
         </group>
@@ -293,7 +293,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, 0.02 - i * 0.22, 0.02]}
+            position={[0, -0.12 - i * 0.24, 0.02]}
             label={r.label}
             valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
             value={v}
@@ -306,9 +306,6 @@ function MazeTab({ settings, onChange }: TabProps) {
           />
         );
       })}
-      <Label position={[0, -0.86, 0.02]} size={0.042} color={UI.inkSoft} maxWidth={1.7}>
-        Layout changes apply to the next maze you generate
-      </Label>
     </group>
   );
 }

@@ -259,20 +259,25 @@ function generateOnce(level: number): Maze {
       junctionCandidates.push({ cell, dir: d });
     }
   }
-  let extra = Math.max(2, Math.round(path.length * 0.6));
+  let extra = Math.max(2, Math.round(path.length * 0.5));
   for (const { cell, dir } of shuffle(junctionCandidates)) {
     if (extra <= 0) break;
     const nc = cell.col + DELTA[dir].dc;
     const nr = cell.row + DELTA[dir].dr;
+    const other = cells[nr]![nc]!;
+    // a route cell may become a T-junction (3 openings) at most, and the false
+    // branch it opens into must stay a corridor (2 openings)
+    if (openCount(cell) >= 3 || openCount(other) >= 2) continue;
     cell.walls[dir] = false;
-    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+    other.walls[OPPOSITE[dir]] = false;
     const check = bfs(cells, cols, rows, start);
     if ((check.dist.get(goalKey) ?? Infinity) < goalDist) {
       cell.walls[dir] = true;
-      cells[nr]![nc]!.walls[OPPOSITE[dir]] = true;
+      other.walls[OPPOSITE[dir]] = true;
       continue;
     }
     extra--;
+
   }
 
   const [gc, gr] = goalKey.split(",").map(Number);

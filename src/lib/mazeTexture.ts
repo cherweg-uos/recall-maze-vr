@@ -65,24 +65,16 @@ export function drawMazeMap(maze: Maze, px = 768): HTMLCanvasElement {
   }
   ctx.stroke();
 
-  // start: arrowhead pointing North (the direction you face on spawn)
-  const sx = cx(maze.start.col);
-  const sy = cy(maze.start.row);
-  const a = cell * 0.3;
-  ctx.fillStyle = MAP_COLORS.ink;
+  // start + goal
+  ctx.fillStyle = MAP_COLORS.muted;
   ctx.beginPath();
-  ctx.moveTo(sx, sy - a);
-  ctx.lineTo(sx + a * 0.72, sy + a * 0.62);
-  ctx.lineTo(sx, sy + a * 0.24);
-  ctx.lineTo(sx - a * 0.72, sy + a * 0.62);
-  ctx.closePath();
+  ctx.arc(cx(maze.start.col), cy(maze.start.row), cell * 0.2, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = MAP_COLORS.accent;
   ctx.beginPath();
   ctx.arc(cx(maze.goal.col), cy(maze.goal.row), cell * 0.26, 0, Math.PI * 2);
   ctx.fill();
-
 
   // north marker
   ctx.fillStyle = MAP_COLORS.ink;

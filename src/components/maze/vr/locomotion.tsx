@@ -23,13 +23,11 @@ export function useSticks({
   settings,
   onYaw,
   onForward,
-  onBack,
 }: {
   settings: GameSettings;
   /** rotation delta in radians (positive = turn right) */
   onYaw: (radians: number) => void;
   onForward?: (() => void) | undefined;
-  onBack?: (() => void) | undefined;
 }) {
   const left = useXRInputSourceState("controller", "left");
   const right = useXRInputSourceState("controller", "right");
@@ -62,15 +60,11 @@ export function useSticks({
     if (armedY.current && y < -DEAD) {
       armedY.current = false;
       onForward?.();
-    } else if (armedY.current && y > DEAD) {
-      armedY.current = false;
-      onBack?.();
     } else if (Math.abs(y) < RECENTER) {
       armedY.current = true;
     }
   });
 }
-
 
 
 export interface TeleportTarget {

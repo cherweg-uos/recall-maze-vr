@@ -311,7 +311,7 @@ export default function MazeGame() {
 
       {inMaze && (
         <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-card/85 px-4 py-1.5 text-center text-xs text-muted-foreground shadow-sm">
-          Trigger to teleport one cell · thumbstick forward/back to step, sideways to turn · hold X for the time left
+          Trigger to teleport one cell · thumbstick forward to step, sideways to turn · hold X for the time left
         </div>
       )}
     </div>

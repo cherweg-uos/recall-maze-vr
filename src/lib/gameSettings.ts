@@ -18,6 +18,12 @@ export interface GameSettings {
   snapDegrees: SnapAngle;
   /** degrees per second while holding the stick in smooth mode */
   smoothDegPerSec: number;
+  /** place decoy goals on false corridors */
+  fakeGoals: boolean;
+  /** how many decoy goals to place */
+  fakeGoalCount: number;
+  /** tint decoys differently (true) or make them look identical (false) */
+  fakeGoalDistinct: boolean;
 }
 
 export interface HighscoreEntry {

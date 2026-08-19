@@ -104,10 +104,10 @@ function bfs(cells: Cell[][], cols: number, rows: number, from: { col: number; r
   return { dist, prev };
 }
 
-/** Grid size and required path length grow with the level. */
+/** Grid size and required path length grow with the level (levels 3–20). */
 export function levelConfig(level: number) {
-  const size = Math.min(4 + Math.floor((level - 1) / 2), 12);
-  const targetLength = 4 + (level - 1) * 2;
+  const size = Math.min(4 + Math.floor(level / 2), 14);
+  const targetLength = 4 + Math.max(0, level - 3) * 2;
   return { cols: size, rows: size, targetLength };
 }
 

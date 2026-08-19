@@ -248,22 +248,32 @@ function Walls({ maze }: { maze: Maze }) {
   );
 }
 
-function Goal({ maze }: { maze: Maze }) {
+const FAKE_GOAL_COLOR = "#4f8fc0";
+
+function Goal({
+  col,
+  row,
+  color = UI.accent,
+}: {
+  col: number;
+  row: number;
+  color?: string;
+}) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((_, d) => {
     if (ref.current) ref.current.rotation.y += d * 0.8;
   });
-  const x = maze.goal.col * CELL + CELL / 2;
-  const z = maze.goal.row * CELL + CELL / 2;
+  const x = col * CELL + CELL / 2;
+  const z = row * CELL + CELL / 2;
   return (
     <group position={[x, 0, z]}>
       <mesh ref={ref} position={[0, 1.1, 0]}>
         <octahedronGeometry args={[0.55]} />
-        <meshStandardMaterial color={UI.accent} emissive={UI.accent} emissiveIntensity={0.5} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <circleGeometry args={[1.1, 32]} />
-        <meshBasicMaterial color={UI.accent} transparent opacity={0.25} />
+        <meshBasicMaterial color={color} transparent opacity={0.25} />
       </mesh>
     </group>
   );
@@ -276,8 +286,12 @@ interface WorldProps {
   timeLeftRef: React.RefObject<number>;
 }
 
-/** The playable maze: floor, walls, goal and the player rig. */
+/** The playable maze: floor, walls, goal(s) and the player rig. */
 export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
+  const decoys = useMemo(
+    () => (settings.fakeGoals ? maze.decoySpots.slice(0, settings.fakeGoalCount) : []),
+    [maze, settings.fakeGoals, settings.fakeGoalCount],
+  );
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -285,10 +299,19 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
         <meshStandardMaterial color="#aab2b8" roughness={1} />
       </mesh>
       <Walls maze={maze} />
-      <Goal maze={maze} />
+      <Goal col={maze.goal.col} row={maze.goal.row} />
+      {decoys.map((d) => (
+        <Goal
+          key={`${d.col},${d.row}`}
+          col={d.col}
+          row={d.row}
+          {...(settings.fakeGoalDistinct ? { color: FAKE_GOAL_COLOR } : {})}
+        />
+      ))}
       <Player maze={maze} settings={settings} onCell={onCell} timeLeftRef={timeLeftRef} />
     </group>
   );
 }
 
 export default MazeWorld;
+

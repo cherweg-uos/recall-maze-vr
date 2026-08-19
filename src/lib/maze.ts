@@ -16,6 +16,10 @@ export interface Maze {
   /** solution path from start to goal, inclusive */
   path: { col: number; row: number }[];
   level: number;
+  /** dead ends of decoy corridors, candidates for fake goals */
+  decoySpots: { col: number; row: number }[];
+  /** internal quality score used when picking the best layout */
+  score: number;
 }
 
 export interface Step {

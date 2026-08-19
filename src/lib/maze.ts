@@ -272,7 +272,7 @@ function generateOnce(level: number): Maze {
 export function generateMaze(level: number): Maze {
   let best: Maze | null = null;
   let bestScore = -1;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 5; i++) {
     const candidate = generateOnce(level);
     const score = decoyScore(candidate.cells, candidate.path);
     if (score > bestScore) {

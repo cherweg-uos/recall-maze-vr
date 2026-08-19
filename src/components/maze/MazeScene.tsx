@@ -181,7 +181,6 @@ function Player({ maze, onCell }: PlayerProps) {
       camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
     }
 
-    (window as any).__maze = { x: pos.current.x, z: pos.current.y, yaw: yaw.current };
     const col = Math.floor(pos.current.x / CELL);
     const row = Math.floor(pos.current.y / CELL);
     const key = `${col},${row}`;

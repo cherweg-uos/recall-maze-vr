@@ -1,3 +1,8 @@
+export type TurnStyle = "snap" | "smooth";
+
+export const SNAP_ANGLES = [15, 30, 90] as const;
+export type SnapAngle = (typeof SNAP_ANGLES)[number];
+
 export interface GameSettings {
   /** seconds you may study the briefing map at level 3 */
   briefingBase: number;
@@ -7,6 +12,12 @@ export interface GameSettings {
   mazeBase: number;
   /** extra maze seconds per level above 3 */
   mazePerLevel: number;
+  /** snap (discrete) or smooth (continuous) thumbstick turning */
+  turnStyle: TurnStyle;
+  /** degrees rotated per snap turn */
+  snapDegrees: SnapAngle;
+  /** degrees per second while holding the stick in smooth mode */
+  smoothDegPerSec: number;
 }
 
 export interface HighscoreEntry {
@@ -25,12 +36,18 @@ export const SETTING_RANGES = {
   mazePerLevel: { min: 10, max: 60, step: 5, label: "Maze + per level", unit: "s" },
 } as const;
 
+export const SMOOTH_TURN_RANGE = { min: 45, max: 240, step: 15 } as const;
+
 export const DEFAULT_SETTINGS: GameSettings = {
   briefingBase: 15,
   briefingPerLevel: 3,
   mazeBase: 150,
   mazePerLevel: 20,
+  turnStyle: "snap",
+  snapDegrees: 30,
+  smoothDegPerSec: 120,
 };
+
 
 const SETTINGS_KEY = "maze-recall:settings:v1";
 const SCORES_KEY = "maze-recall:scores:v1";

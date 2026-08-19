@@ -73,6 +73,9 @@ export function FacingAnchor({
   height?: number;
 }) {
   const ref = useRef<THREE.Group>(null);
-  useFacePlayer(ref, { distance, height });
+  useFacePlayer(ref, {
+    ...(distance === undefined ? {} : { distance }),
+    ...(height === undefined ? {} : { height }),
+  });
   return <group ref={ref}>{children}</group>;
 }

@@ -289,15 +289,31 @@ function fillRemaining(
 function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze {
   const { cols, rows, targetLength } = levelConfig(level);
   const cells = makeGrid(cols, rows);
-  const start: Pt = { col: 0, row: rows - 1 };
 
-  let path = walkPath(cols, rows, start, targetLength, shape.twistiness);
+  // try random start cells so neither start nor goal sits in a fixed corner
+  const candidates = shuffle(
+    Array.from({ length: cols * rows }, (_, i) => ({
+      col: i % cols,
+      row: Math.floor(i / cols),
+    })),
+  );
+
+  let start: Pt = candidates[0]!;
+  let path: Pt[] | null = null;
   let length = targetLength;
   while (!path && length > 3) {
-    length -= 1;
-    path = walkPath(cols, rows, start, length, shape.twistiness);
+    for (const c of candidates.slice(0, 24)) {
+      const attempt = walkPath(cols, rows, c, length, shape.twistiness);
+      if (attempt) {
+        start = c;
+        path = attempt;
+        break;
+      }
+    }
+    if (!path) length -= 1;
   }
   const route = path ?? [start];
+
 
   for (let i = 1; i < route.length; i++) {
     const a = route[i - 1]!;

@@ -123,11 +123,18 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
     return yaw.current;
   }, [camera]);
 
-  const stepForward = useCallback(() => {
-    const dir = headingToDir(currentHeading());
-    if (!canStep(maze, cell.current.col, cell.current.row, dir)) return;
-    goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
-  }, [currentHeading, goTo, maze]);
+  const step = useCallback(
+    (sign: 1 | -1) => {
+      const heading = currentHeading();
+      const dir = headingToDir(sign === 1 ? heading : heading + Math.PI);
+      if (!canStep(maze, cell.current.col, cell.current.row, dir)) return;
+      goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
+    },
+    [currentHeading, goTo, maze],
+  );
+
+  const stepForward = useCallback(() => step(1), [step]);
+  const stepBack = useCallback(() => step(-1), [step]);
 
   const turn = useCallback(
     (d: -1 | 1) => {
@@ -136,14 +143,16 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
     [settings],
   );
 
-  useSticks({ settings, onYaw: (r) => (yaw.current -= r), onForward: stepForward });
+  useSticks({ settings, onYaw: (r) => (yaw.current -= r), onForward: stepForward, onBack: stepBack });
 
   useKeyPress((code) => {
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
     else if (code === "ArrowRight" || code === "KeyD") turn(1);
     else if (code === "KeyW" || code === "ArrowUp") stepForward();
+    else if (code === "KeyS" || code === "ArrowDown") stepBack();
     else if (code === "KeyX") xHeld.current = true;
   });
+
 
   useEffect(() => {
     const up = (e: KeyboardEvent) => {

@@ -110,9 +110,8 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
           {`${Math.max(0, Math.ceil(secondsLeft))}s`}
         </Label>
         <Label
-          position={[0.06, 0.24, 0.02]}
+          position={[0.06, 0.05, 0.02]}
           anchorX="left"
-          anchorY="top"
           size={0.05}
           color={UI.ink}
           maxWidth={0.9}

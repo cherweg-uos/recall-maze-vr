@@ -85,34 +85,37 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
 
   return (
     <group ref={group} position={[0, 1.45, -1.5]} scale={0.85}>
-      <Panel width={1.5} height={1.05} color={held ? "#fbf7ef" : UI.panel}>
+      <Panel width={2.1} height={1.15} color={held ? "#fbf7ef" : UI.panel}>
+        {/* map on the left */}
         <mesh
-          position={[0, 0.06, 0.012]}
+          position={[-0.55, 0.03, 0.012]}
           onPointerDown={startGrab}
           onPointerUp={endGrab}
           onPointerLeave={endGrab}
         >
-          <planeGeometry args={[0.86, 0.86]} />
+          <planeGeometry args={[0.9, 0.9]} />
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
 
-        <Label position={[-0.7, 0.44, 0.02]} anchorX="left" size={0.055} color={UI.inkSoft}>
+        {/* info column on the right */}
+        <Label position={[0.06, 0.44, 0.02]} anchorX="left" size={0.055} color={UI.inkSoft}>
           {`Level ${level}`}
         </Label>
         <Label
-          position={[0.7, 0.44, 0.02]}
+          position={[0.98, 0.44, 0.02]}
           anchorX="right"
           size={0.075}
           color={urgent ? UI.danger : UI.accent}
         >
           {`${Math.max(0, Math.ceil(secondsLeft))}s`}
         </Label>
-
         <Label
-          position={[0, -0.4, 0.02]}
-          size={0.045}
+          position={[0.06, 0.24, 0.02]}
+          anchorX="left"
+          anchorY="top"
+          size={0.05}
           color={UI.ink}
-          maxWidth={1.35}
+          maxWidth={0.9}
         >
           {stepText}
         </Label>
@@ -123,7 +126,7 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
         onClick={onReady}
         width={0.6}
         height={0.16}
-        position={[0.42, -0.66, 0.02]}
+        position={[0.42, -0.72, 0.02]}
         color={UI.accentSoft}
       />
       <Button3D
@@ -131,9 +134,9 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
         onClick={onQuit}
         width={0.45}
         height={0.16}
-        position={[-0.42, -0.66, 0.02]}
+        position={[-0.42, -0.72, 0.02]}
       />
-      <Label position={[0, -0.86, 0.02]} size={0.04} color={UI.inkSoft}>
+      <Label position={[0, -0.92, 0.02]} size={0.04} color={UI.inkSoft}>
         Grab the board with a trigger to move it
       </Label>
     </group>

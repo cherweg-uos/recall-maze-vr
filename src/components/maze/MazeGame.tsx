@@ -92,7 +92,17 @@ export default function MazeGame() {
   const runLeftRef = useRef(0);
   const startedAt = useRef(0);
 
-  const maze = useMemo(() => generateMaze(level), [level, seed]);
+  const maze = useMemo(
+    () =>
+      generateMaze(
+        level,
+        settings.mazeShape,
+        settings.fakeGoalsEnabled ? settings.fakeGoalCount : 0,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [level, seed, settings.mazeShape, settings.fakeGoalsEnabled, settings.fakeGoalCount],
+  );
+
   const steps = useMemo(() => pathToSteps(maze.path), [maze]);
   const pathSet = useMemo(
     () => new Set(maze.path.map((p) => `${p.col},${p.row}`)),

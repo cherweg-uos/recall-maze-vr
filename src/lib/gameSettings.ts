@@ -1,3 +1,5 @@
+import { DEFAULT_SHAPE, type MazeShape } from "./maze";
+
 export type TurnStyle = "snap" | "smooth";
 
 export const SNAP_ANGLES = [15, 30, 90] as const;
@@ -18,6 +20,14 @@ export interface GameSettings {
   snapDegrees: SnapAngle;
   /** degrees per second while holding the stick in smooth mode */
   smoothDegPerSec: number;
+  /** place decoy goal markers in false branches */
+  fakeGoalsEnabled: boolean;
+  /** how many decoy goals to place */
+  fakeGoalCount: number;
+  /** give decoys their own colour instead of matching the real goal */
+  fakeGoalDistinct: boolean;
+  /** procedural layout knobs */
+  mazeShape: MazeShape;
 }
 
 export interface HighscoreEntry {
@@ -38,6 +48,17 @@ export const SETTING_RANGES = {
 
 export const SMOOTH_TURN_RANGE = { min: 45, max: 240, step: 15 } as const;
 
+export const FAKE_GOAL_RANGE = { min: 0, max: 6, step: 1 } as const;
+
+export const SHAPE_RANGES = {
+  decoyDensity: { min: 0, max: 1, step: 0.05, label: "Fake paths" },
+  branchDepth: { min: 1, max: 8, step: 1, label: "Decoy corridor length" },
+  loopiness: { min: 0, max: 1, step: 0.05, label: "Decoy loops" },
+  twistiness: { min: 0, max: 1, step: 0.05, label: "Corridor twistiness" },
+} as const;
+
+export type ShapeKey = keyof typeof SHAPE_RANGES;
+
 export const DEFAULT_SETTINGS: GameSettings = {
   briefingBase: 15,
   briefingPerLevel: 3,
@@ -46,7 +67,12 @@ export const DEFAULT_SETTINGS: GameSettings = {
   turnStyle: "snap",
   snapDegrees: 30,
   smoothDegPerSec: 120,
+  fakeGoalsEnabled: true,
+  fakeGoalCount: 3,
+  fakeGoalDistinct: false,
+  mazeShape: { ...DEFAULT_SHAPE },
 };
+
 
 
 const SETTINGS_KEY = "maze-recall:settings:v1";
@@ -55,12 +81,20 @@ const SCORES_KEY = "maze-recall:scores:v1";
 export function loadSettings(): GameSettings {
   try {
     const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<GameSettings>) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<GameSettings>;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        mazeShape: { ...DEFAULT_SETTINGS.mazeShape, ...(parsed.mazeShape ?? {}) },
+      };
+    }
   } catch {
     /* ignore */
   }
-  return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS, mazeShape: { ...DEFAULT_SHAPE } };
 }
+
 
 export function saveSettings(s: GameSettings) {
   try {

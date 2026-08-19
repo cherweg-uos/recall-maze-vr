@@ -122,17 +122,11 @@ function ancestry(prev: Map<string, string>, key: string): string[] {
   return chain;
 }
 
-/** How many sides of a cell are open. */
-function openCount(cell: Cell): number {
-  return DIRS.reduce((n, d) => n + (cell.walls[d] ? 0 : 1), 0);
-}
-
 /**
- * Join off-route dead ends into longer corridors. Openings are only made when
- * both cells stay at two open sides or fewer, so a wrong turn always reads as a
- * corridor or a corner — never as an open room. An opening is also rejected
- * when the existing route between the two cells touches the solution path,
- * which keeps the solution unique.
+ * Open extra doorways between off-route cells so wrong turns lead into long,
+ * looping corridors instead of obvious two-step dead ends. An opening is only
+ * accepted when the existing route between the two cells never touches the
+ * solution path, which keeps the solution unique.
  */
 function braid(
   cells: Cell[][],
@@ -172,11 +166,6 @@ function braid(
     if (opened >= budget) break;
     const nc = cell.col + DELTA[dir].dc;
     const nr = cell.row + DELTA[dir].dr;
-    const other = cells[nr]![nc]!;
-    // corridor rule: joining two dead ends keeps both cells at two openings,
-    // so the result is always a corridor or a corner, never an open room
-    if (openCount(cell) >= 2 || openCount(other) >= 2) continue;
-
     const a = chainOf(`${cell.col},${cell.row}`);
     const b = chainOf(`${nc},${nr}`);
     // union of both ancestries minus the shared tail is the connecting route
@@ -192,11 +181,10 @@ function braid(
     }
     if (!safe) continue;
     cell.walls[dir] = false;
-    other.walls[OPPOSITE[dir]] = false;
+    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
     opened++;
   }
 }
-
 
 /** How many decoy openings branch off the solution route. */
 function decoyScore(cells: Cell[][], path: { col: number; row: number }[]) {
@@ -259,25 +247,20 @@ function generateOnce(level: number): Maze {
       junctionCandidates.push({ cell, dir: d });
     }
   }
-  let extra = Math.max(2, Math.round(path.length * 0.5));
+  let extra = Math.max(2, Math.round(path.length * 0.6));
   for (const { cell, dir } of shuffle(junctionCandidates)) {
     if (extra <= 0) break;
     const nc = cell.col + DELTA[dir].dc;
     const nr = cell.row + DELTA[dir].dr;
-    const other = cells[nr]![nc]!;
-    // a route cell may become a T-junction (3 openings) at most, and the false
-    // branch it opens into must stay a corridor (2 openings)
-    if (openCount(cell) >= 3 || openCount(other) >= 2) continue;
     cell.walls[dir] = false;
-    other.walls[OPPOSITE[dir]] = false;
+    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
     const check = bfs(cells, cols, rows, start);
     if ((check.dist.get(goalKey) ?? Infinity) < goalDist) {
       cell.walls[dir] = true;
-      other.walls[OPPOSITE[dir]] = true;
+      cells[nr]![nc]!.walls[OPPOSITE[dir]] = true;
       continue;
     }
     extra--;
-
   }
 
   const [gc, gr] = goalKey.split(",").map(Number);

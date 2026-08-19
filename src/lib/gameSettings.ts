@@ -18,6 +18,12 @@ export interface GameSettings {
   snapDegrees: SnapAngle;
   /** degrees per second while holding the stick in smooth mode */
   smoothDegPerSec: number;
+  /** place decoy goals on false corridors */
+  fakeGoals: boolean;
+  /** how many decoy goals to place */
+  fakeGoalCount: number;
+  /** tint decoys differently (true) or make them look identical (false) */
+  fakeGoalDistinct: boolean;
 }
 
 export interface HighscoreEntry {
@@ -38,6 +44,8 @@ export const SETTING_RANGES = {
 
 export const SMOOTH_TURN_RANGE = { min: 45, max: 240, step: 15 } as const;
 
+export const FAKE_GOAL_RANGE = { min: 1, max: 6, step: 1 } as const;
+
 export const DEFAULT_SETTINGS: GameSettings = {
   briefingBase: 15,
   briefingPerLevel: 3,
@@ -46,7 +54,11 @@ export const DEFAULT_SETTINGS: GameSettings = {
   turnStyle: "snap",
   snapDegrees: 30,
   smoothDegPerSec: 120,
+  fakeGoals: false,
+  fakeGoalCount: 2,
+  fakeGoalDistinct: true,
 };
+
 
 
 const SETTINGS_KEY = "maze-recall:settings:v1";

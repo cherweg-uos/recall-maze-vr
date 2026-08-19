@@ -84,7 +84,7 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
   const urgent = secondsLeft <= 5;
 
   return (
-    <group ref={group} position={[0, 1.45, -1.5]} rotation={[-0.18, 0, 0]} scale={0.85}>
+    <group ref={group} position={[0, 1.45, -1.5]} scale={0.85}>
       <Panel width={1.5} height={1.05} color={held ? "#fbf7ef" : UI.panel}>
         <mesh
           position={[0, 0.06, 0.012]}

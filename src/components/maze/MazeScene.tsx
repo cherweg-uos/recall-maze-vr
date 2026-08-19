@@ -239,26 +239,42 @@ function Walls({ maze }: { maze: Maze }) {
   );
 }
 
-function Goal({ maze }: { maze: Maze }) {
+function GoalMarker({ col, row, color }: { col: number; row: number; color: string }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((_, d) => {
     if (ref.current) ref.current.rotation.y += d * 0.8;
   });
-  const x = maze.goal.col * CELL + CELL / 2;
-  const z = maze.goal.row * CELL + CELL / 2;
+  const x = col * CELL + CELL / 2;
+  const z = row * CELL + CELL / 2;
   return (
     <group position={[x, 0, z]}>
       <mesh ref={ref} position={[0, 1.1, 0]}>
         <octahedronGeometry args={[0.55]} />
-        <meshStandardMaterial color={UI.accent} emissive={UI.accent} emissiveIntensity={0.5} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <circleGeometry args={[1.1, 32]} />
-        <meshBasicMaterial color={UI.accent} transparent opacity={0.25} />
+        <meshBasicMaterial color={color} transparent opacity={0.25} />
       </mesh>
     </group>
   );
 }
+
+const DECOY_COLOR = "#4f9bd1";
+
+function Goals({ maze, settings }: { maze: Maze; settings: GameSettings }) {
+  const decoys = settings.fakeGoalsEnabled ? maze.decoyGoals : [];
+  const decoyColor = settings.fakeGoalDistinct ? DECOY_COLOR : UI.accent;
+  return (
+    <group>
+      <GoalMarker col={maze.goal.col} row={maze.goal.row} color={UI.accent} />
+      {decoys.map((d) => (
+        <GoalMarker key={`${d.col},${d.row}`} col={d.col} row={d.row} color={decoyColor} />
+      ))}
+    </group>
+  );
+}
+
 
 interface WorldProps {
   maze: Maze;

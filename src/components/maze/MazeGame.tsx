@@ -41,19 +41,41 @@ type Phase =
 
 const store = createXRStore({ emulate: false });
 
-/** Keeps the flat-screen camera parked in the menu room. */
-function MenuCamera() {
+/** Menu locomotion: free teleport on the floor plus 30° snap turning. */
+function MenuRig() {
   const { camera } = useThree();
+  const originRef = useRef<THREE.Group>(null);
+  const pos = useRef(new THREE.Vector2(0, 0));
+  const yaw = useRef(0);
+
+  useSticks({ onTurn: (d) => (yaw.current -= d * SNAP_TURN) });
+
   useFrame((state) => {
-    if (state.gl.xr.isPresenting) return;
-    camera.position.set(0, 1.6, 0);
-    camera.quaternion.copy(new THREE.Quaternion());
+    if (originRef.current) {
+      originRef.current.position.set(pos.current.x, 0, pos.current.y);
+      originRef.current.rotation.set(0, yaw.current, 0);
+    }
+    if (!state.gl.xr.isPresenting) {
+      camera.position.set(pos.current.x, 1.6, pos.current.y);
+      camera.rotation.set(0, yaw.current, 0, "YXZ");
+    }
   });
+
   useEffect(() => {
     if (document.pointerLockElement) document.exitPointerLock?.();
   }, []);
-  return <XROrigin position={[0, 0, 0]} />;
+
+  return (
+    <>
+      <XROrigin ref={originRef} />
+      <TeleportFloor
+        size={60}
+        onTeleport={(x, z) => pos.current.set(x, z)}
+      />
+    </>
+  );
 }
+
 
 export default function MazeGame() {
   const [phase, setPhase] = useState<Phase>("enter");

@@ -366,6 +366,13 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
       if (!used.has(key(q)) || pathSet.has(key(q)) || pathSet.has(key(pt))) continue;
       if (!cells[pt.row]![pt.col]!.walls[d]) continue;
       carveBetween(cells, pt, d);
+      // never let a loop create a shortcut around the recorded solution
+      const goalCell = route[route.length - 1]!;
+      if ((distances(cells, cols, rows, start).get(key(goalCell)) ?? 0) < route.length - 1) {
+        cells[pt.row]![pt.col]!.walls[d] = true;
+        cells[q.row]![q.col]!.walls[OPPOSITE[d]] = true;
+        continue;
+      }
       loops--;
     }
   }

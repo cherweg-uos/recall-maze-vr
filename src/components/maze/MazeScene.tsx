@@ -292,7 +292,7 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
         <meshStandardMaterial color="#aab2b8" roughness={1} />
       </mesh>
       <Walls maze={maze} />
-      <Goal maze={maze} />
+      <Goals maze={maze} settings={settings} />
       <Player maze={maze} settings={settings} onCell={onCell} timeLeftRef={timeLeftRef} />
     </group>
   );

@@ -6,6 +6,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import { DIR_LABEL, pathToSteps, type Maze } from "@/lib/maze";
 import { drawMazeMap } from "@/lib/mazeTexture";
 import { Button3D, Label, Panel, UI } from "./ui3d";
+import { useFacePlayer } from "./facePlayer";
 
 interface Props {
   maze: Maze;
@@ -19,10 +20,14 @@ interface Props {
 export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Props) {
   const group = useRef<THREE.Group>(null);
   const grab = useRef<{ hand: THREE.Object3D; offset: THREE.Matrix4 } | null>(null);
+  const touched = useRef(false);
   const [held, setHeld] = useState(false);
+
+  useFacePlayer(group, { distance: 1.6, height: 1.45, skipRef: touched });
 
   const left = useXRInputSourceState("controller", "left");
   const right = useXRInputSourceState("controller", "right");
+
 
   const texture = useMemo(() => {
     const tex = new THREE.CanvasTexture(drawMazeMap(maze));
@@ -54,6 +59,7 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
       .invert()
       .multiply(board.matrixWorld);
     grab.current = { hand, offset };
+    touched.current = true;
     setHeld(true);
   };
 
@@ -78,7 +84,7 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
   const urgent = secondsLeft <= 5;
 
   return (
-    <group ref={group} position={[0, 1.45, -1.5]} rotation={[-0.18, 0, 0]} scale={0.85}>
+    <group ref={group} position={[0, 1.45, -1.5]} scale={0.85}>
       <Panel width={1.5} height={1.05} color={held ? "#fbf7ef" : UI.panel}>
         <mesh
           position={[0, 0.06, 0.012]}

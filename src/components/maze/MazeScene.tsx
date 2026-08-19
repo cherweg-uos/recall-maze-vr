@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dir, Maze } from "@/lib/maze";
-import { DELTA } from "@/lib/maze";
+import { DELTA, dirBetween } from "@/lib/maze";
 import { formatClock, type GameSettings } from "@/lib/gameSettings";
 import { UI } from "./vr/ui3d";
 import { TeleportFloor, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";
@@ -78,7 +78,14 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   const hudTextRef = useRef<{ text: string } | null>(null);
   const { camera } = useThree();
   const cell = useRef({ col: maze.start.col, row: maze.start.row });
-  const yaw = useRef(0);
+  const startYaw = useCallback((m: Maze) => {
+    const a = m.path[0];
+    const b = m.path[1];
+    if (!a || !b) return 0;
+    const idx = CARDINALS.indexOf(dirBetween(a, b));
+    return idx < 0 ? 0 : -idx * (Math.PI / 2);
+  }, []);
+  const yaw = useRef(startYaw(maze));
   const xHeld = useRef(false);
 
   const leftCtrl = useXRInputSourceState("controller", "left");
@@ -86,8 +93,9 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
 
   useEffect(() => {
     cell.current = { col: maze.start.col, row: maze.start.row };
-    yaw.current = 0;
-  }, [maze]);
+    yaw.current = startYaw(maze);
+  }, [maze, startYaw]);
+
 
   const goTo = useCallback(
     (col: number, row: number) => {

@@ -59,6 +59,7 @@ export function BriefingBoard({ maze, level, secondsLeft, onReady, onQuit }: Pro
       .invert()
       .multiply(board.matrixWorld);
     grab.current = { hand, offset };
+    touched.current = true;
     setHeld(true);
   };
 

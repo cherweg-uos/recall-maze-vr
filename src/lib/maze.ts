@@ -176,17 +176,6 @@ function growBranch(
       const q = { col: cur.col + DELTA[d].dc, row: cur.row + DELTA[d].dr };
       if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
       if (used.has(key(q))) continue;
-      // never run alongside the solution route, and never touch another corridor
-      let ok = true;
-      for (const nd of DIRS) {
-        const n = { col: q.col + DELTA[nd].dc, row: q.row + DELTA[nd].dr };
-        if (n.col === cur.col && n.row === cur.row) continue;
-        if (pathSet.has(key(n)) || used.has(key(n))) {
-          ok = false;
-          break;
-        }
-      }
-      if (!ok) continue;
       carveBetween(cells, cur, d);
       used.add(key(q));
       out.push({ pt: q, depth });
@@ -233,17 +222,6 @@ function generateOnce(level: number, shape: MazeShape, fakeGoals: number): Maze 
     const q = { col: p.col + DELTA[d].dc, row: p.row + DELTA[d].dr };
     if (q.col < 0 || q.col >= cols || q.row < 0 || q.row >= rows) continue;
     if (used.has(key(q))) continue;
-    // the first branch cell must not brush another corridor
-    let ok = true;
-    for (const nd of DIRS) {
-      const n = { col: q.col + DELTA[nd].dc, row: q.row + DELTA[nd].dr };
-      if (n.col === p.col && n.row === p.row) continue;
-      if (used.has(key(n))) {
-        ok = false;
-        break;
-      }
-    }
-    if (!ok) continue;
     carveBetween(cells, p, d);
     used.add(key(q));
     branchCells.push({ pt: q, depth: 1 });

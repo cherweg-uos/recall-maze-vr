@@ -128,11 +128,14 @@ function Player({ maze, onCell, timeLeftRef }: PlayerProps) {
     goTo(cell.current.col + DELTA[dir].dc, cell.current.row + DELTA[dir].dr);
   }, [currentHeading, goTo, maze]);
 
-  const turn = useCallback((d: -1 | 1) => {
-    yaw.current -= d * SNAP_TURN;
-  }, []);
+  const turn = useCallback(
+    (d: -1 | 1) => {
+      yaw.current -= d * snapAngle(settings);
+    },
+    [settings],
+  );
 
-  useSticks({ onTurn: turn, onForward: stepForward });
+  useSticks({ settings, onYaw: (r) => (yaw.current -= r), onForward: stepForward });
 
   useKeyPress((code) => {
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);

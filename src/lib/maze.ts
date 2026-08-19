@@ -122,11 +122,17 @@ function ancestry(prev: Map<string, string>, key: string): string[] {
   return chain;
 }
 
+/** How many sides of a cell are open. */
+function openCount(cell: Cell): number {
+  return DIRS.reduce((n, d) => n + (cell.walls[d] ? 0 : 1), 0);
+}
+
 /**
- * Open extra doorways between off-route cells so wrong turns lead into long,
- * looping corridors instead of obvious two-step dead ends. An opening is only
- * accepted when the existing route between the two cells never touches the
- * solution path, which keeps the solution unique.
+ * Join off-route dead ends into longer corridors. Openings are only made when
+ * both cells stay at two open sides or fewer, so a wrong turn always reads as a
+ * corridor or a corner — never as an open room. An opening is also rejected
+ * when the existing route between the two cells touches the solution path,
+ * which keeps the solution unique.
  */
 function braid(
   cells: Cell[][],
@@ -166,6 +172,11 @@ function braid(
     if (opened >= budget) break;
     const nc = cell.col + DELTA[dir].dc;
     const nr = cell.row + DELTA[dir].dr;
+    const other = cells[nr]![nc]!;
+    // corridor rule: at least one side must be a dead end and neither cell may
+    // end up with more than two openings
+    if (openCount(cell) > 1 && openCount(other) > 1) continue;
+    if (openCount(cell) >= 2 || openCount(other) >= 2) continue;
     const a = chainOf(`${cell.col},${cell.row}`);
     const b = chainOf(`${nc},${nr}`);
     // union of both ancestries minus the shared tail is the connecting route
@@ -181,10 +192,11 @@ function braid(
     }
     if (!safe) continue;
     cell.walls[dir] = false;
-    cells[nr]![nc]!.walls[OPPOSITE[dir]] = false;
+    other.walls[OPPOSITE[dir]] = false;
     opened++;
   }
 }
+
 
 /** How many decoy openings branch off the solution route. */
 function decoyScore(cells: Cell[][], path: { col: number; row: number }[]) {

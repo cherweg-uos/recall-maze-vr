@@ -92,11 +92,15 @@ export default function MazeGame() {
     saveSettings(s);
   }, []);
 
+  const studyEndsAt = useRef(0);
+
   const beginBriefing = useCallback(
     (lvl: number, freshLayout = true) => {
       setLevel(lvl);
       if (freshLayout) setSeed((s) => s + 1);
-      setStudyLeft(briefingSeconds(lvl, settings));
+      const secs = briefingSeconds(lvl, settings);
+      studyEndsAt.current = performance.now() + secs * 1000;
+      setStudyLeft(secs);
       setPhase("briefing");
     },
     [settings],
@@ -114,15 +118,12 @@ export default function MazeGame() {
   useEffect(() => {
     if (phase !== "briefing") return;
     const id = window.setInterval(() => {
-      setStudyLeft((s) => {
-        const next = s - 0.1;
-        if (next <= 0) {
-          window.clearInterval(id);
-          beginRun();
-          return 0;
-        }
-        return next;
-      });
+      const left = (studyEndsAt.current - performance.now()) / 1000;
+      setStudyLeft(Math.max(0, left));
+      if (left <= 0) {
+        window.clearInterval(id);
+        beginRun();
+      }
     }, 100);
     return () => window.clearInterval(id);
   }, [phase, beginRun]);

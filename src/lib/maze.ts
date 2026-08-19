@@ -173,10 +173,10 @@ function braid(
     const nc = cell.col + DELTA[dir].dc;
     const nr = cell.row + DELTA[dir].dr;
     const other = cells[nr]![nc]!;
-    // corridor rule: at least one side must be a dead end and neither cell may
-    // end up with more than two openings
-    if (openCount(cell) > 1 && openCount(other) > 1) continue;
+    // corridor rule: joining two dead ends keeps both cells at two openings,
+    // so the result is always a corridor or a corner, never an open room
     if (openCount(cell) >= 2 || openCount(other) >= 2) continue;
+
     const a = chainOf(`${cell.col},${cell.row}`);
     const b = chainOf(`${nc},${nr}`);
     // union of both ancestries minus the shared tail is the connecting route

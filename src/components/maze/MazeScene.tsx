@@ -299,8 +299,19 @@ function useHedgeAsset() {
     const rawMaterial = Array.isArray(src.material) ? src.material[0] : src.material;
     if (!rawMaterial) return null;
     const material = rawMaterial.clone();
-    (material as THREE.MeshStandardMaterial).side = THREE.FrontSide;
+    const std = material as THREE.MeshStandardMaterial;
+    std.side = THREE.FrontSide;
+    std.roughness = 1;
+    std.metalness = 0;
+    std.envMapIntensity = 0.2;
+    if ("clearcoat" in std) {
+      const phys = std as THREE.MeshPhysicalMaterial;
+      phys.clearcoat = 0;
+      phys.clearcoatRoughness = 1;
+      phys.reflectivity = 0;
+    }
     return { geometry, material, size };
+
   }, [gltf]);
 }
 

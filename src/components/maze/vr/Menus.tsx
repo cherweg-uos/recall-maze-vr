@@ -3,6 +3,7 @@ import { Button3D, Label, Panel, SliderRow, UI } from "./ui3d";
 import {
   FAKE_GOAL_RANGE,
   MAX_LEVEL,
+  MUSIC_VOLUME_RANGE,
   MIN_LEVEL,
   SETTING_RANGES,
   SHAPE_RANGES,

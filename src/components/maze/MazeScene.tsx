@@ -177,12 +177,17 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
       xHeld.current = true;
       return;
     }
+    if (code === "KeyB") {
+      abortRef.current?.();
+      return;
+    }
     if (movementLocked()) return;
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
     else if (code === "ArrowRight" || code === "KeyD") turn(1);
     else if (code === "KeyW" || code === "ArrowUp") stepForward();
     else if (code === "KeyS" || code === "ArrowDown") stepBack();
   });
+
 
 
   useEffect(() => {

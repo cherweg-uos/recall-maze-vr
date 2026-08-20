@@ -1,7 +1,9 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import stoneAsset from "@/assets/tileable_stone_floor.glb.asset.json";
+import { lodForDistance, stoneLods } from "./stoneLod";
 
 const URL = stoneAsset.url;
 
@@ -163,6 +165,28 @@ function StonePart({
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const material = useMemo(() => clippedMaterial(mesh), [mesh]);
+  const lods = useMemo(() => stoneLods(mesh.geometry), [mesh]);
+  const level = useRef(0);
+
+  /** centre of this batch — LOD is chosen per batch, not per tile */
+  const centre = useMemo(() => {
+    const c = new THREE.Vector3();
+    for (const p of items) c.add(new THREE.Vector3(p.x, p.y, p.z));
+    if (items.length) c.multiplyScalar(1 / items.length);
+    return c;
+  }, [items]);
+
+  useFrame((state) => {
+    const inst = ref.current;
+    if (!inst || !inst.visible) return;
+    const camPos = state.camera.getWorldPosition(new THREE.Vector3());
+    const next = lodForDistance(camPos.distanceTo(centre), level.current);
+    if (next !== level.current) {
+      level.current = next;
+      const geo = lods[next];
+      if (geo) inst.geometry = geo;
+    }
+  });
 
   useLayoutEffect(() => {
     const inst = ref.current;

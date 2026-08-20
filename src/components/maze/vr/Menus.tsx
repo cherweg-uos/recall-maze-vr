@@ -62,7 +62,7 @@ export function TitlePanel({
         <Label position={[0, 0.68, 0.02]} size={0.13}>
           Maze Recall
         </Label>
-        <Label position={[0, 0.52, 0.02]} size={0.05} color={UI.danger} maxWidth={1.3}>
+        <Label position={[0, 0.52, 0.02]} size={0.07} color={UI.danger} maxWidth={1.3}>
           Study the route, then walk it from memory
         </Label>
         {items.map(([label, fn], i) => (

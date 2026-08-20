@@ -26,6 +26,8 @@ export interface GameSettings {
   fakeGoalCount: number;
   /** give decoys their own colour instead of matching the real goal */
   fakeGoalDistinct: boolean;
+  /** background music volume, 0..1 */
+  musicVolume: number;
   /** never fail for leaving the solution route */
   godMode: boolean;
   /** procedural layout knobs */
@@ -49,6 +51,8 @@ export const SETTING_RANGES = {
 } as const;
 
 export const SMOOTH_TURN_RANGE = { min: 45, max: 240, step: 15 } as const;
+
+export const MUSIC_VOLUME_RANGE = { min: 0, max: 1, step: 0.05 } as const;
 
 export const FAKE_GOAL_RANGE = { min: 0, max: 6, step: 1 } as const;
 
@@ -74,6 +78,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   fakeGoalCount: 3,
   fakeGoalDistinct: false,
   godMode: false,
+  musicVolume: 0.5,
   mazeShape: { ...DEFAULT_SHAPE },
 };
 

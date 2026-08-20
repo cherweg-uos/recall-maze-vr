@@ -20,5 +20,5 @@ Note on expectations: clipping removes shading work but not the vertices. If til
 ## Technical notes
 
 - `src/assets/moon.png.asset.json` new pointer; `Moon()` in `src/components/maze/MazeGame.tsx` uses `useTexture(moonAsset.url)` with `colorSpace = SRGBColorSpace`, plus a `rotation` on the sphere aligning the lit hemisphere with `MOON_DIR`.
-- `src/components/maze/vr/StoneFloor.tsx`: clone the GLTF material per part, set `clippingPlanes: [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)]`, `clipShadows: true`; enable `gl.localClippingEnabled` via the `<Canvas>` `gl` prop in `MazeGame.tsx`.
+- `src/components/maze/vr/StoneFloor.tsx`: `castShadow={false}` and `receiveShadow={false}` on both instanced batches; clone the GLTF material per part and set `clippingPlanes: [new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)]`; enable `gl.localClippingEnabled` via the `<Canvas>` `gl` prop in `MazeGame.tsx`.
 - `SINK` adjusted together with the clip plane height so the visible stone profile matches today's look.

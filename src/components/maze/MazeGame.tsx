@@ -8,7 +8,7 @@ import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
 import { Stars, useTexture } from "@react-three/drei";
-import moonAsset from "@/assets/full_moon.png.asset.json";
+import moonTextureUrl from "@/assets/moon_disc.png";
 import {
   HighscoresPanel,
   LevelSelectPanel,
@@ -55,7 +55,7 @@ const MOON_RADIUS = 22;
 /** A flat moon disc fixed in the sky, matching the moonlight direction. */
 function Moon() {
   const p = MOON_DIR.clone().multiplyScalar(MOON_DIST);
-  const tex = useTexture(moonAsset.url);
+  const tex = useTexture(moonTextureUrl);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
   // static orientation: disc's front (+Z) points at the world origin once, then never turns

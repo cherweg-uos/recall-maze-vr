@@ -50,6 +50,7 @@ export function useSticks({
   const armedY = useRef(true);
 
   useFrame((_, delta) => {
+    if (movementLocked()) return;
     let x = 0;
     let y = 0;
     for (const c of [left, right]) {
@@ -58,6 +59,7 @@ export function useSticks({
       if (Math.abs(g.xAxis ?? 0) > Math.abs(x)) x = g.xAxis ?? 0;
       if (Math.abs(g.yAxis ?? 0) > Math.abs(y)) y = g.yAxis ?? 0;
     }
+
 
     if (settings.turnStyle === "smooth") {
       if (Math.abs(x) > SMOOTH_DEAD) {

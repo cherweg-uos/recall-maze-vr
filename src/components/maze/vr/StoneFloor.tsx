@@ -49,7 +49,6 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
     return found;
   }, [gltf]);
 
-  console.log("STONEFLOOR parts", parts.length);
   const placements = useMemo(() => {
     const rand = rng(seed);
     const w = cols * cell;
@@ -113,8 +112,6 @@ function StonePart({ mesh, items }: { mesh: THREE.Mesh; items: Placement[] }) {
     });
     inst.instanceMatrix.needsUpdate = true;
     inst.computeBoundingSphere();
-    mesh.geometry.computeBoundingBox();
-    console.log("STONE", items.length, JSON.stringify(mesh.geometry.boundingBox), inst.count);
   }, [items]);
 
   if (!items.length) return null;

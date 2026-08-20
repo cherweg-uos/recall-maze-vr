@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Button3D, Label, Panel, SliderRow, UI } from "./ui3d";
+import { StoneFloor } from "./StoneFloor";
+
 import {
   FAKE_GOAL_RANGE,
   MAX_LEVEL,

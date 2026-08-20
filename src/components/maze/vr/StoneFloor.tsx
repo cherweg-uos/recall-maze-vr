@@ -49,6 +49,7 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
     return found;
   }, [gltf]);
 
+  console.log("STONEFLOOR parts", parts.length);
   const placements = useMemo(() => {
     const rand = rng(seed);
     const w = cols * cell;

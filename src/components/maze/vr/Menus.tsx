@@ -28,7 +28,7 @@ export function MenuRoom() {
     <group>
       {/* Circular ground disc = the 5 m movement limit */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[6, 96]} />
+        <circleGeometry args={[7, 96]} />
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>

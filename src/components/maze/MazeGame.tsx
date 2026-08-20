@@ -48,9 +48,9 @@ type Phase =
 const store = createXRStore({ emulate: false });
 
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
-const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
+const MOON_DIR = new THREE.Vector3(10, 7, -20).normalize();
 const MOON_DIST = 400;
-const MOON_RADIUS = 18;
+const MOON_RADIUS = 22;
 
 /** A flat moon disc fixed in the sky, matching the moonlight direction. */
 function Moon() {
@@ -311,7 +311,7 @@ export default function MazeGame() {
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />
           <directionalLight
-            position={[14, 22, -10]}
+            position={[MOON_DIR.x * 30, MOON_DIR.y * 30, MOON_DIR.z * 30]}
             color="#cdd9ff"
             intensity={1.05}
             castShadow

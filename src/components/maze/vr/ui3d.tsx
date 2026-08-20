@@ -12,6 +12,10 @@ export const UI = {
   danger: "#b8443a",
 };
 
+/** Menu surfaces swallow pointer events so the teleport floor never sees them. */
+const stop = (e: ThreeEvent<PointerEvent>) => e.stopPropagation();
+
+
 export function Panel({
   width,
   height,

@@ -2,9 +2,9 @@
 
 ## 1. Textured moon
 
-- Host the uploaded `moon.png` on the asset CDN (`lovable-assets create`) and import the pointer JSON — the binary never enters the repo.
+- Host the uploaded `full_moon.png` on the asset CDN (`lovable-assets create`) and import the pointer JSON — the binary never enters the repo.
 - The moon sphere in `MazeGame.tsx` gets that image as its colour map instead of the flat off-white colour, still unlit (`meshBasicMaterial`, `toneMapped={false}`, `fog={false}`) so it stays crisp against the night sky.
-- Rotate the sphere so the bright limb of the texture faces the same direction as the moonlight (`MOON_DIR`), keeping shadows in the scene consistent with what you see in the sky.
+- Because it is a fully lit full moon, no rotation trickery is needed — the disc reads correctly from any angle.
 - Keep the soft halo shell as-is; slightly reduce its opacity so it doesn't wash the new surface detail.
 
 ## 2. Don't pay for the buried part of the stone tiles

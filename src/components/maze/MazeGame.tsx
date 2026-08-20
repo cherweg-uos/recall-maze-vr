@@ -5,16 +5,19 @@ import * as THREE from "three";
 import { generateMaze, pathToSteps } from "@/lib/maze";
 import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
-import { TeleportFloor, useSticks } from "./vr/locomotion";
+import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
+import { Stars } from "@react-three/drei";
 import {
   HighscoresPanel,
   LevelSelectPanel,
+  MENU_RADIUS,
   MenuRoom,
   ResultPanel,
   SettingsPanel,
   TitlePanel,
 } from "./vr/Menus";
+
 import {
   DEFAULT_SETTINGS,
   MIN_LEVEL,
@@ -71,11 +74,13 @@ function MenuRig({ settings }: { settings: GameSettings }) {
     <>
       <XROrigin ref={originRef} />
       <TeleportFloor
-        size={60}
+        size={40}
+        radius={MENU_RADIUS}
         onTeleport={(x, z) => pos.current.set(x, z)}
       />
     </>
   );
+
 }
 
 
@@ -196,6 +201,7 @@ export default function MazeGame() {
       const key = `${col},${row}`;
       if (col === maze.goal.col && row === maze.goal.row) {
         const time = performance.now() - startedAt.current;
+        lockMovement(500);
         setClearedMs(time);
         recordScore(level, time);
         setPhase("cleared");
@@ -203,6 +209,7 @@ export default function MazeGame() {
       }
       // backtracking onto an already visited cell is always safe
       if (!pathSet.has(key) && !visited.current.has(key)) {
+        lockMovement(500);
         setFailReason("You stepped off the route.");
         setPhase("failed");
         return;
@@ -211,6 +218,11 @@ export default function MazeGame() {
     },
     [phase, maze, pathSet, level, recordScore],
   );
+
+  // every scene swap freezes locomotion briefly so a button press can't teleport
+  useEffect(() => {
+    lockMovement(500);
+  }, [phase]);
 
   const backToTitle = useCallback(() => setPhase("title"), []);
 
@@ -225,10 +237,18 @@ export default function MazeGame() {
     <div className="relative h-screen w-full">
       <Canvas shadows camera={{ fov: 72, near: 0.05, far: 200 }} dpr={[1, 1.75]}>
         <XR store={store}>
-          <color attach="background" args={["#cfd8dc"]} />
-          <fog attach="fog" args={["#cfd8dc", 10, 40]} />
-          <hemisphereLight args={["#ffffff", "#b9b3a6", 1.15]} />
-          <directionalLight position={[12, 18, 8]} intensity={1.1} castShadow />
+          <color attach="background" args={["#070b16"]} />
+          <fog attach="fog" args={["#070b16", 22, 75]} />
+          <Stars radius={80} depth={40} count={4500} factor={4} saturation={0} fade speed={0.6} />
+          <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
+          <ambientLight color="#4a5a80" intensity={0.35} />
+          <directionalLight
+            position={[14, 22, -10]}
+            color="#cdd9ff"
+            intensity={1.05}
+            castShadow
+          />
+
 
           {inMaze ? (
             <MazeWorld maze={maze} settings={settings} onCell={handleCell} timeLeftRef={runLeftRef} />

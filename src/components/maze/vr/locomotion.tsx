@@ -9,10 +9,23 @@ const DEAD = 0.75;
 const RECENTER = 0.25;
 const SMOOTH_DEAD = 0.18;
 
+/** Global movement lock, used across scene transitions to avoid accidental input. */
+let lockedUntil = 0;
+
+/** Disable all locomotion for `ms` milliseconds. */
+export function lockMovement(ms = 500) {
+  lockedUntil = Math.max(lockedUntil, performance.now() + ms);
+}
+
+export function movementLocked() {
+  return performance.now() < lockedUntil;
+}
+
 /** Radians rotated per snap turn for the current settings. */
 export function snapAngle(settings: GameSettings) {
   return ((settings.snapDegrees ?? 30) * Math.PI) / 180;
 }
+
 
 /**
  * Thumbstick locomotion. Sideways push either snaps the view by the configured
@@ -37,6 +50,7 @@ export function useSticks({
   const armedY = useRef(true);
 
   useFrame((_, delta) => {
+    if (movementLocked()) return;
     let x = 0;
     let y = 0;
     for (const c of [left, right]) {
@@ -45,6 +59,7 @@ export function useSticks({
       if (Math.abs(g.xAxis ?? 0) > Math.abs(x)) x = g.xAxis ?? 0;
       if (Math.abs(g.yAxis ?? 0) > Math.abs(y)) y = g.yAxis ?? 0;
     }
+
 
     if (settings.turnStyle === "smooth") {
       if (Math.abs(x) > SMOOTH_DEAD) {
@@ -84,17 +99,23 @@ export interface TeleportTarget {
  */
 export function TeleportFloor({
   size = 200,
+  radius,
   snap,
   onTeleport,
 }: {
   size?: number;
+  /** when set, only points within this distance of the origin are valid */
+  radius?: number | undefined;
   snap?: ((x: number, z: number) => TeleportTarget) | undefined;
   onTeleport: (x: number, z: number) => void;
 }) {
   const [target, setTarget] = useState<TeleportTarget | null>(null);
 
-  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget =>
-    snap ? snap(e.point.x, e.point.z) : { x: e.point.x, z: e.point.z, valid: true };
+  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget => {
+    const t = snap ? snap(e.point.x, e.point.z) : { x: e.point.x, z: e.point.z, valid: true };
+    if (radius !== undefined && Math.hypot(t.x, t.z) > radius) return { ...t, valid: false };
+    return t;
+  };
 
   return (
     <group>
@@ -107,12 +128,13 @@ export function TeleportFloor({
         onPointerUp={(e: ThreeEvent<PointerEvent>) => {
           const t = resolve(e);
           setTarget(t);
-          if (t.valid) onTeleport(t.x, t.z);
+          if (t.valid && !movementLocked()) onTeleport(t.x, t.z);
         }}
       >
         <planeGeometry args={[size, size]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
+
 
       {target && (
         <group position={[target.x, 0.135, target.z]} rotation={[-Math.PI / 2, 0, 0]}>

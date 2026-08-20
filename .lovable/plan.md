@@ -25,5 +25,5 @@
 
 - `Menus.tsx` `MenuRoom`: swap the 60x60 plane for a `circleGeometry` of radius 5 (plus a subtle rim ring), keeping the existing centre marker.
 - `locomotion.tsx` `TeleportFloor`: accept an optional radius; `snap` in the menu path marks targets outside `sqrt(x^2+z^2) > 5` as invalid so the existing valid/invalid disc styling handles the feedback.
-- `MazeGame.tsx`: change `<color>`/`<fog>` to a night blue, replace the hemisphere/directional pair with a moonlit rig, and add a stars component (drei `Stars`, already available) rendered for both menu and maze phases.
+- `MazeGame.tsx`: change `<color>`/`<fog>` to a night blue, replace the hemisphere/directional pair with a moonlit rig, and add a stars component (drei `Stars`, already available) rendered for both menu and maze phases. It also owns a shared `lockedUntil` timestamp ref set on every phase change (and on goal/fail detection); `useSticks` and `TeleportFloor` ignore input while locked, and the menu rig resets the origin to (0, 0, 0) with the default yaw when returning from a maze.
 - Maze floor/wall materials stay the same; only lighting and background change so brightness is tuned via light intensities.

@@ -1,6 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { XROrigin, useXRInputSourceState } from "@react-three/xr";
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { CHUNK_CELLS, chunkKey, visibleChunks } from "@/lib/mazeVisibility";
 import { StoneFloor } from "./vr/StoneFloor";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";

@@ -58,19 +58,33 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
     const minZ = -apron;
     const maxZ = d + apron;
     const out: Placement[] = [];
-    for (let x = minX; x < maxX; x += TILE) {
-      for (let z = minZ; z < maxZ; z += TILE) {
-        const outside = x < -0.5 || z < -0.5 || x > w - 0.5 || z > d - 0.5;
-        // sparser, larger slabs on the outer apron to keep instance counts low
-        const scale = outside ? 1.6 : 1;
-        if (outside && rand() > 0.42) continue;
+    // in-maze tiles: exact grid, uniform scale — only yaw and height vary
+    for (let x = 0; x < w; x += TILE) {
+      for (let z = 0; z < d; z += TILE) {
         out.push({
           part: rand() < 0.5 ? 0 : 1,
-          x: x + TILE / 2 + (rand() - 0.5) * 0.08,
-          z: z + TILE / 2 + (rand() - 0.5) * 0.08,
-          y: SINK + (rand() - 0.5) * 0.015,
-          yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.06,
-          scale: scale * (0.98 + rand() * 0.06),
+          x: x + TILE / 2,
+          z: z + TILE / 2,
+          y: SINK + (rand() - 0.5) * 0.008,
+          yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.035,
+          scale: 1,
+        });
+      }
+    }
+    // apron: larger slabs on their own matching grid step, sparsely filled
+    const APRON_SCALE = 1.6;
+    const step = TILE * APRON_SCALE;
+    for (let x = minX; x < maxX; x += step) {
+      for (let z = minZ; z < maxZ; z += step) {
+        if (x + step > 0 && x < w && z + step > 0 && z < d) continue;
+        if (rand() > 0.5) continue;
+        out.push({
+          part: rand() < 0.5 ? 0 : 1,
+          x: x + step / 2,
+          z: z + step / 2,
+          y: SINK + (rand() - 0.5) * 0.02,
+          yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.05,
+          scale: APRON_SCALE,
         });
       }
     }

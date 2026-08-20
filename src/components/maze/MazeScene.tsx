@@ -276,7 +276,7 @@ function GoalMarker({ col, row, color }: { col: number; row: number; color: stri
         <octahedronGeometry args={[0.55]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.14, 0]}>
         <circleGeometry args={[1.1, 32]} />
         <meshBasicMaterial color={color} transparent opacity={0.25} />
       </mesh>

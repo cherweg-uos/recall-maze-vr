@@ -242,6 +242,18 @@ function MazeTab({ settings, onChange }: TabProps) {
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <group>
+      <Label position={[-0.75, 0.86, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+        God mode (no fail off route)
+      </Label>
+      <Button3D
+        label={settings.godMode ? "On" : "Off"}
+        onClick={() => onChange({ ...settings, godMode: !settings.godMode })}
+        width={0.4}
+        height={0.15}
+        size={0.055}
+        position={[0.55, 0.86, 0.03]}
+        color={settings.godMode ? UI.accentSoft : "#e9e4d9"}
+      />
       <Label position={[-0.75, 0.62, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
         Fake goals
       </Label>

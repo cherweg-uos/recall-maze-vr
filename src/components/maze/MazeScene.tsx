@@ -76,9 +76,11 @@ interface PlayerProps {
   onCell: (col: number, row: number) => void;
   /** ms remaining, shown while the X button (or desktop X key) is held */
   timeLeftRef: React.RefObject<number>;
+  /** B / Y button (or desktop B key) gives up the run */
+  onAbort?: (() => void) | undefined;
 }
 
-function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
+function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
   const originRef = useRef<THREE.Group>(null);
   const hudRef = useRef<THREE.Group>(null);
   const hudTextRef = useRef<{ text: string } | null>(null);
@@ -93,9 +95,13 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   }, []);
   const yaw = useRef(startYaw(maze));
   const xHeld = useRef(false);
+  const abortArmed = useRef(true);
+  const abortRef = useRef(onAbort);
+  abortRef.current = onAbort;
 
   const leftCtrl = useXRInputSourceState("controller", "left");
   const rightCtrl = useXRInputSourceState("controller", "right");
+
 
   useEffect(() => {
     cell.current = { col: maze.start.col, row: maze.start.row };
@@ -171,12 +177,17 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
       xHeld.current = true;
       return;
     }
+    if (code === "KeyB") {
+      abortRef.current?.();
+      return;
+    }
     if (movementLocked()) return;
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
     else if (code === "ArrowRight" || code === "KeyD") turn(1);
     else if (code === "KeyW" || code === "ArrowUp") stepForward();
     else if (code === "KeyS" || code === "ArrowDown") stepBack();
   });
+
 
 
   useEffect(() => {
@@ -200,11 +211,23 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
       camera.rotation.set(0, yaw.current, 0, "YXZ");
     }
 
+    // B (right) / Y (left) gives up the run
+    const bPressed =
+      rightCtrl?.gamepad?.["b-button"]?.state === "pressed" ||
+      leftCtrl?.gamepad?.["y-button"]?.state === "pressed";
+    if (bPressed && abortArmed.current) {
+      abortArmed.current = false;
+      abortRef.current?.();
+    } else if (!bPressed) {
+      abortArmed.current = true;
+    }
+
     // hold X (or the X key on desktop) to peek at the remaining time
     const xPressed =
       leftCtrl?.gamepad?.["x-button"]?.state === "pressed" ||
       rightCtrl?.gamepad?.["a-button"]?.state === "pressed" ||
       xHeld.current;
+
     if (hudRef.current) {
       hudRef.current.visible = xPressed;
       if (xPressed) {
@@ -353,10 +376,11 @@ interface WorldProps {
   settings: GameSettings;
   onCell: (col: number, row: number) => void;
   timeLeftRef: React.RefObject<number>;
+  onAbort?: (() => void) | undefined;
 }
 
 /** The playable maze: floor, walls, goal and the player rig. */
-export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
+export function MazeWorld({ maze, settings, onCell, timeLeftRef, onAbort }: WorldProps) {
   const [at, setAt] = useState({ col: maze.start.col, row: maze.start.row });
 
   useEffect(() => {
@@ -391,7 +415,13 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
       </Suspense>
       <Walls maze={maze} visible={visible} />
       <Goals maze={maze} settings={settings} />
-      <Player maze={maze} settings={settings} onCell={handleCell} timeLeftRef={timeLeftRef} />
+      <Player
+        maze={maze}
+        settings={settings}
+        onCell={handleCell}
+        timeLeftRef={timeLeftRef}
+        onAbort={onAbort}
+      />
     </group>
   );
 }

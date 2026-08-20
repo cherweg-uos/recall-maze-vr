@@ -32,6 +32,10 @@ interface Props {
   centerZ?: number;
   /** extra metres of stone beyond the footprint */
   apron?: number;
+  /** circular mode: solid tiles within this radius (metres) */
+  radius?: number;
+  /** circular mode: tiles thin out between radius and this */
+  fadeRadius?: number;
   seed?: number;
 }
 

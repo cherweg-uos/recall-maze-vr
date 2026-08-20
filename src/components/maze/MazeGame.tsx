@@ -70,6 +70,7 @@ function Moon() {
         <meshBasicMaterial
           map={tex}
           transparent
+          side={THREE.DoubleSide}
           toneMapped={false}
           fog={false}
           depthWrite={false}
@@ -80,6 +81,7 @@ function Moon() {
         <meshBasicMaterial
           color="#8ea6dd"
           transparent
+          side={THREE.DoubleSide}
           opacity={0.07}
           toneMapped={false}
           fog={false}

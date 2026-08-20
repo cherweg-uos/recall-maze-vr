@@ -11,15 +11,16 @@ There is no random component, so every hedge on the same axis shows the exact sa
 
 ## Change
 
-Give each wall segment one of 4 deterministic variants: 180° yaw flip × horizontal mirror.
+Give each wall segment one of 4 deterministic variants: horizontal (front-back) flip × vertical (top-bottom) flip.
 
 - Derive a stable pseudo-random 2-bit value from the segment's grid position (hash of `x`/`z`), so a wall keeps the same look across re-renders, culling toggles, and chunk rebuilds — no flickering when visibility changes.
-- Bit 1: add `Math.PI` to the yaw (swaps which face is seen).
-- Bit 2: negate the long-axis scale, mirroring the prop end-to-end. Combined with the flip this gives 4 distinct silhouettes from one mesh.
-- The prop is already centred on both horizontal axes, so both operations keep the segment in place and gapless.
-- Mirroring inverts the geometry winding, which can make lighting look wrong on a single-sided material. To avoid that, keep the hedge material double-sided for the walls (it already tolerates this visually as a dense hedge) — or, if that looks off in the headset, drop the mirror bit back to a plain 2-variant flip and say so.
+- Bit 1 (front-back): add 180° yaw. Swaps which end and which face point where.
+- Bit 2 (top-bottom): add 180° roll around the segment's long axis, turning the hedge upside down.
+- Both are pure rotations, so geometry winding, normals, and lighting stay correct — no mirrored/negative scale, and the single-sided material keeps working.
+- The prop is already centred across its thin axis and its long axis. For the vertical flip it also needs to be centred vertically before rotating: shift the base-aligned geometry by half its height in the instance matrix so the roll happens around the segment's mid-height and the hedge still sits exactly on the ground with the same 2.5 m height.
 
 ## Notes
 
 - Collision, teleport validation, and occlusion culling read the maze grid, not the mesh, so they are unaffected.
-- Scale magnitude, height (2.5 m), and thickness stay as they are.
+- Scale, height (2.5 m), and thickness stay as they are.
+- If the model's top and bottom differ enough that upside-down hedges read as wrong (e.g. a visible trimmed top edge or root base), I'll keep the front-back flip and drop the vertical one, and tell you.

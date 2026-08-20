@@ -26,9 +26,9 @@ const PANEL_POS: [number, number, number] = [0, 0, 0];
 export function MenuRoom() {
   return (
     <group>
-      {/* Circular ground disc = the 7 m movement limit */}
+      {/* Circular ground disc = the 6 m movement limit */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[7, 96]} />
+        <circleGeometry args={[6, 96]} />
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>

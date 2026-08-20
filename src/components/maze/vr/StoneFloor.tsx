@@ -21,21 +21,11 @@ const TILE = 1; // model is ~1x1 unit
 const SINK = -0.005;
 
 interface Props {
-  /** maze footprint (ignored when width/depth are given) */
-  cols?: number;
-  rows?: number;
-  cell?: number;
-  /** explicit footprint in metres */
-  width?: number;
-  depth?: number;
-  centerX?: number;
-  centerZ?: number;
-  /** extra metres of stone beyond the footprint */
+  cols: number;
+  rows: number;
+  cell: number;
+  /** extra metres of stone beyond the maze footprint */
   apron?: number;
-  /** circular mode: solid tiles within this radius (metres) */
-  radius?: number;
-  /** circular mode: tiles thin out between radius and this */
-  fadeRadius?: number;
   seed?: number;
 }
 
@@ -48,19 +38,7 @@ interface Placement {
   scale: number;
 }
 
-export function StoneFloor({
-  cols = 0,
-  rows = 0,
-  cell = 1,
-  width,
-  depth,
-  centerX,
-  centerZ,
-  apron = 14,
-  radius,
-  fadeRadius,
-  seed = 1,
-}: Props) {
+export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
   const gltf = useGLTF(URL);
 
   const parts = useMemo(() => {
@@ -73,51 +51,20 @@ export function StoneFloor({
 
   const placements = useMemo(() => {
     const rand = rng(seed);
-    // circular platform mode: solid disc + dithered fade ring, no apron
-    if (radius !== undefined) {
-      const cx = centerX ?? 0;
-      const cz = centerZ ?? 0;
-      const fade = Math.max(fadeRadius ?? radius + 2, radius);
-      const out: Placement[] = [];
-      const n = Math.ceil(fade / TILE) + 1;
-      for (let i = -n; i <= n; i++) {
-        for (let j = -n; j <= n; j++) {
-          const x = cx + (i + 0.5) * TILE;
-          const z = cz + (j + 0.5) * TILE;
-          const dist = Math.hypot(x - cx, z - cz);
-          if (dist > fade) continue;
-          if (dist > radius) {
-            const keep = 1 - (dist - radius) / (fade - radius);
-            if (rand() > keep) continue;
-          }
-          out.push({
-            part: rand() < 0.5 ? 0 : 1,
-            x,
-            z,
-            y: SINK + (rand() - 0.5) * 0.008,
-            yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.035,
-            scale: 1,
-          });
-        }
-      }
-      return out;
-    }
-    const w = width ?? cols * cell;
-    const d = depth ?? rows * cell;
-    const originX = centerX !== undefined ? centerX - w / 2 : 0;
-    const originZ = centerZ !== undefined ? centerZ - d / 2 : 0;
-    const minX = originX - apron;
-    const maxX = originX + w + apron;
-    const minZ = originZ - apron;
-    const maxZ = originZ + d + apron;
+    const w = cols * cell;
+    const d = rows * cell;
+    const minX = -apron;
+    const maxX = w + apron;
+    const minZ = -apron;
+    const maxZ = d + apron;
     const out: Placement[] = [];
-    // inner tiles: exact grid, uniform scale — only yaw and height vary
+    // in-maze tiles: exact grid, uniform scale — only yaw and height vary
     for (let x = 0; x < w; x += TILE) {
       for (let z = 0; z < d; z += TILE) {
         out.push({
           part: rand() < 0.5 ? 0 : 1,
-          x: originX + x + TILE / 2,
-          z: originZ + z + TILE / 2,
+          x: x + TILE / 2,
+          z: z + TILE / 2,
           y: SINK + (rand() - 0.5) * 0.008,
           yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.035,
           scale: 1,
@@ -129,7 +76,7 @@ export function StoneFloor({
     const step = TILE * APRON_SCALE;
     for (let x = minX; x < maxX; x += step) {
       for (let z = minZ; z < maxZ; z += step) {
-        if (x + step > originX && x < originX + w && z + step > originZ && z < originZ + d) continue;
+        if (x + step > 0 && x < w && z + step > 0 && z < d) continue;
         if (rand() > 0.5) continue;
         out.push({
           part: rand() < 0.5 ? 0 : 1,
@@ -142,8 +89,7 @@ export function StoneFloor({
       }
     }
     return out;
-  }, [cols, rows, cell, width, depth, centerX, centerZ, apron, radius, fadeRadius, seed]);
-
+  }, [cols, rows, cell, apron, seed]);
 
   const groups = useMemo(
     () => [placements.filter((p) => p.part === 0), placements.filter((p) => p.part === 1)],

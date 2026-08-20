@@ -71,8 +71,7 @@ function MenuRig({ settings }: { settings: GameSettings }) {
     <>
       <XROrigin ref={originRef} />
       <TeleportFloor
-        size={20}
-        snap={(x, z) => ({ x, z, valid: x * x + z * z <= 25 })}
+        size={60}
         onTeleport={(x, z) => pos.current.set(x, z)}
       />
     </>

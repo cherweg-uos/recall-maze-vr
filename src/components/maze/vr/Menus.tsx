@@ -1,7 +1,5 @@
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { Button3D, Label, Panel, SliderRow, UI } from "./ui3d";
-import { StoneFloor } from "./StoneFloor";
-
 import {
   FAKE_GOAL_RANGE,
   MAX_LEVEL,
@@ -26,20 +24,11 @@ const PANEL_POS: [number, number, number] = [0, 0, 0];
 export function MenuRoom() {
   return (
     <group>
-      {/* Circular ground disc = the 6 m movement limit */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[6, 96]} />
-        <meshStandardMaterial color="#6f6a63" roughness={1} />
+        <planeGeometry args={[60, 60]} />
+        <meshStandardMaterial color="#b3bbc0" roughness={1} />
       </mesh>
-      <Suspense fallback={null}>
-        <StoneFloor radius={5} fadeRadius={7} centerX={0} centerZ={0} seed={7} />
-      </Suspense>
-      {/* Boundary ring at the movement limit */}
-      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[4.9, 5, 96]} />
-        <meshBasicMaterial color={UI.accent} transparent opacity={0.7} />
-      </mesh>
-      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.56, 64]} />
         <meshBasicMaterial color={UI.accentSoft} transparent opacity={0.5} />
       </mesh>

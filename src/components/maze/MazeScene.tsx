@@ -3,8 +3,9 @@ import { XROrigin, useXRInputSourceState } from "@react-three/xr";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { CHUNK_CELLS, chunkKey, visibleChunks } from "@/lib/mazeVisibility";
 import { StoneFloor } from "./vr/StoneFloor";
-import { Text } from "@react-three/drei";
+import { Text, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import hedgeAsset from "@/assets/hedge_wall.glb.asset.json";
 import type { Dir, Maze } from "@/lib/maze";
 import { DELTA, dirBetween } from "@/lib/maze";
 import { formatClock, type GameSettings } from "@/lib/gameSettings";
@@ -276,12 +277,12 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
 function useHedgeAsset() {
   const gltf = useGLTF(hedgeAsset.url);
   return useMemo(() => {
-    let mesh: THREE.Mesh | null = null;
-    gltf.scene.traverse((o) => {
-      if (!mesh && (o as THREE.Mesh).isMesh) mesh = o as THREE.Mesh;
+    let found: THREE.Mesh | undefined;
+    gltf.scene.traverse((o: THREE.Object3D) => {
+      if (!found && (o as THREE.Mesh).isMesh) found = o as THREE.Mesh;
     });
-    if (!mesh) return null;
-    const src = mesh as THREE.Mesh;
+    if (!found) return null;
+    const src = found;
     const geometry = src.geometry.clone();
     geometry.computeBoundingBox();
     const bb = geometry.boundingBox!;
@@ -295,9 +296,9 @@ function useHedgeAsset() {
     geometry.computeBoundingSphere();
     const size = new THREE.Vector3();
     geometry.boundingBox!.getSize(size);
-    const material = (
-      Array.isArray(src.material) ? src.material[0] : src.material
-    ).clone() as THREE.Material;
+    const rawMaterial = Array.isArray(src.material) ? src.material[0] : src.material;
+    if (!rawMaterial) return null;
+    const material = rawMaterial.clone();
     (material as THREE.MeshStandardMaterial).side = THREE.FrontSide;
     return { geometry, material, size };
   }, [gltf]);
@@ -463,7 +464,9 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef, onAbort }: Worl
           visibleChunks={visible}
         />
       </Suspense>
-      <Walls maze={maze} visible={visible} />
+      <Suspense fallback={null}>
+        <Walls maze={maze} visible={visible} />
+      </Suspense>
       <Goals maze={maze} settings={settings} />
       <Player
         maze={maze}

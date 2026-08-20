@@ -18,6 +18,9 @@ function rng(seed: number) {
 
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
 const SINK = -0.07;
+/** Y scale factor to flatten the tiles relative to their grid size */
+const FLATTEN = 0.55;
+
 
 interface Props {
   cols: number;
@@ -155,7 +158,7 @@ function StonePart({ mesh, items, visible }: { mesh: THREE.Mesh; items: Placemen
     items.forEach((p, i) => {
       dummy.position.set(p.x, p.y, p.z);
       dummy.rotation.set(0, p.yaw, 0);
-      dummy.scale.setScalar(p.scale);
+      dummy.scale.set(p.scale, p.scale * FLATTEN, p.scale);
       dummy.updateMatrix();
       inst.setMatrixAt(i, dummy.matrix);
     });

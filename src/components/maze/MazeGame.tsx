@@ -48,7 +48,7 @@ type Phase =
 const store = createXRStore({ emulate: false });
 
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
-const MOON_DIR = new THREE.Vector3(10, 7, -20).normalize();
+const MOON_DIR = new THREE.Vector3(10, 11, -20).normalize();
 const MOON_DIST = 400;
 const MOON_RADIUS = 22;
 

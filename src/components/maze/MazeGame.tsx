@@ -71,11 +71,13 @@ function MenuRig({ settings }: { settings: GameSettings }) {
     <>
       <XROrigin ref={originRef} />
       <TeleportFloor
-        size={60}
+        size={40}
+        radius={MENU_RADIUS}
         onTeleport={(x, z) => pos.current.set(x, z)}
       />
     </>
   );
+
 }
 
 

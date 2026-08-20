@@ -7,7 +7,7 @@ import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
-import { Billboard, Stars, useTexture } from "@react-three/drei";
+import { Stars, useTexture } from "@react-three/drei";
 import moonAsset from "@/assets/full_moon.png.asset.json";
 import {
   HighscoresPanel,

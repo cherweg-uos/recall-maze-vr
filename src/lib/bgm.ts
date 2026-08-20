@@ -8,7 +8,7 @@ import bgmAsset from "@/assets/bgm-main.mp3.asset.json";
 const TRACK: string = bgmAsset.url;
 
 let el: HTMLAudioElement | null = null;
-let volume = 0.5;
+let volume = 0.05;
 let wanted = false;
 
 function audio(): HTMLAudioElement | null {

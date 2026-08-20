@@ -311,7 +311,13 @@ export default function MazeGame() {
 
 
           {inMaze ? (
-            <MazeWorld maze={maze} settings={settings} onCell={handleCell} timeLeftRef={runLeftRef} />
+            <MazeWorld
+              maze={maze}
+              settings={settings}
+              onCell={handleCell}
+              timeLeftRef={runLeftRef}
+              onAbort={abortRun}
+            />
           ) : (
             <>
               <MenuRoom />

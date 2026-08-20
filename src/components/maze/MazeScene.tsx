@@ -8,7 +8,7 @@ import type { Dir, Maze } from "@/lib/maze";
 import { DELTA, dirBetween } from "@/lib/maze";
 import { formatClock, type GameSettings } from "@/lib/gameSettings";
 import { UI } from "./vr/ui3d";
-import { TeleportFloor, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";
+import { TeleportFloor, movementLocked, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";
 
 export const CELL = 3;
 const WALL_H = 2.5;

@@ -1,7 +1,9 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import stoneAsset from "@/assets/tileable_stone_floor.glb.asset.json";
+import { lodForDistance, stoneLods } from "./stoneLod";
 
 const URL = stoneAsset.url;
 

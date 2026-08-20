@@ -49,14 +49,17 @@ const store = createXRStore({ emulate: false });
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
 const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
 
-/** A moon disc far away in the sky, matching the moonlight direction. */
+/** A moon far away in the sky, matching the moonlight direction. */
 function Moon() {
   const p = MOON_DIR.clone().multiplyScalar(120);
+  const tex = useTexture(moonAsset.url);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return (
     <group position={[p.x, p.y, p.z]} raycast={() => null}>
       <mesh raycast={() => null}>
-        <sphereGeometry args={[5.5, 32, 32]} />
-        <meshBasicMaterial color="#eef3ff" toneMapped={false} fog={false} />
+        <sphereGeometry args={[5.5, 48, 48]} />
+        <meshBasicMaterial map={tex} toneMapped={false} fog={false} />
       </mesh>
       <mesh raycast={() => null} scale={[3.2, 3.2, 3.2]}>
         <sphereGeometry args={[5.5, 24, 24]} />
@@ -65,7 +68,7 @@ function Moon() {
           toneMapped={false}
           fog={false}
           transparent
-          opacity={0.12}
+          opacity={0.08}
           depthWrite={false}
           side={THREE.BackSide}
         />

@@ -17,9 +17,10 @@ function rng(seed: number) {
 }
 
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
-const SINK = -0.07;
+const SINK = -0.05;
 /** Y scale factor to flatten the tiles relative to their grid size */
 const FLATTEN = 0.55;
+
 
 
 interface Props {

@@ -21,14 +21,13 @@ The GLB has exactly two stone sub-parts (`Mesh_0`, `Mesh_1`), sharing one PBR ma
 
 5. **Sink the prop 3/4 into the base floor** — the tile's visible thickness is ~0.12 m, so tiles sit with roughly the top quarter proud of the ground plane (Y offset around -0.09 with jitter). The existing grey plane stays in place and shows through the gaps as mortar/dirt; its colour gets darkened to read as grout rather than concrete.
 
-6. **Keep it cheap** — instanced meshes, `frustumCulled` left on, no shadow casting from tiles (they only receive), texture anisotropy capped, and tiles only generated over the maze footprint rather than the full 400 x 400 plane. Menu room stays as it is unless you want the same treatment there.
+6. **Coverage** — tiles fill the whole maze footprint (the ground you can actually walk and see between walls), plus an outward apron that extends to the visible ground beyond the maze walls. Fog already hides the world past ~40 m, so the apron stops there rather than covering the full 400 x 400 plane — visually it reads as "stone everywhere" at zero extra cost.
+
+7. **Keep it cheap** — instanced meshes, `frustumCulled` on, tiles receive but do not cast shadows, texture anisotropy capped. Even a level-20 maze plus apron stays at 2 draw calls. If the instance count gets large, the apron switches to larger, sparser slabs (scaled-up instances) toward the outer ring.
 
 ## Technical notes
 
 - New file `src/components/maze/vr/StoneFloor.tsx` exporting `<StoneFloor cols rows cell />`, rendered from `MazeWorld` in `src/components/maze/MazeScene.tsx` just above the existing ground plane.
 - `useGLTF` comes from `@react-three/drei`, already installed.
-- Instance count for a level-20 maze is on the order of a few thousand slabs across 2 draw calls — well within Quest budget. If the count ever grows past comfort, the fallback is to tile only cells within a radius of the player.
+- Instance count is measured after the first build; if it exceeds a comfortable budget for standalone headsets, the apron radius shrinks first — the in-maze coverage is never reduced.
 
-## Open choice
-
-If you would rather the stones cover only the corridors (not under the walls / outside the maze), that is a one-line change to the tiling loop — say the word and I will scope it that way instead.

@@ -26,17 +26,24 @@ const PANEL_POS: [number, number, number] = [0, 0, 0];
 export function MenuRoom() {
   return (
     <group>
+      {/* Circular ground disc = the 5 m movement limit */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[20, 20]} />
+        <circleGeometry args={[5, 96]} />
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>
         <StoneFloor radius={5} fadeRadius={7} centerX={0} centerZ={0} seed={7} />
       </Suspense>
+      {/* Boundary ring at the movement limit */}
+      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[4.9, 5, 96]} />
+        <meshBasicMaterial color={UI.accent} transparent opacity={0.7} />
+      </mesh>
       <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.56, 64]} />
         <meshBasicMaterial color={UI.accentSoft} transparent opacity={0.5} />
       </mesh>
+
     </group>
   );
 }

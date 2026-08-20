@@ -57,6 +57,8 @@ export function StoneFloor({
   centerX,
   centerZ,
   apron = 14,
+  radius,
+  fadeRadius,
   seed = 1,
 }: Props) {
   const gltf = useGLTF(URL);

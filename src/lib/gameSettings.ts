@@ -78,7 +78,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   fakeGoalCount: 3,
   fakeGoalDistinct: false,
   godMode: false,
-  musicVolume: 0.05,
+  musicVolume: 0.1,
   mazeShape: { ...DEFAULT_SHAPE },
 };
 

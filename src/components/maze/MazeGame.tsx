@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { XR, XROrigin, createXRStore } from "@react-three/xr";
 import * as THREE from "three";
@@ -7,7 +7,8 @@ import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
-import { Stars } from "@react-three/drei";
+import { Stars, useTexture } from "@react-three/drei";
+import moonAsset from "@/assets/full_moon.png.asset.json";
 import {
   HighscoresPanel,
   LevelSelectPanel,
@@ -49,14 +50,17 @@ const store = createXRStore({ emulate: false });
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
 const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
 
-/** A moon disc far away in the sky, matching the moonlight direction. */
+/** A moon far away in the sky, matching the moonlight direction. */
 function Moon() {
   const p = MOON_DIR.clone().multiplyScalar(120);
+  const tex = useTexture(moonAsset.url);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return (
     <group position={[p.x, p.y, p.z]} raycast={() => null}>
       <mesh raycast={() => null}>
-        <sphereGeometry args={[5.5, 32, 32]} />
-        <meshBasicMaterial color="#eef3ff" toneMapped={false} fog={false} />
+        <sphereGeometry args={[5.5, 48, 48]} />
+        <meshBasicMaterial map={tex} toneMapped={false} fog={false} />
       </mesh>
       <mesh raycast={() => null} scale={[3.2, 3.2, 3.2]}>
         <sphereGeometry args={[5.5, 24, 24]} />
@@ -65,7 +69,7 @@ function Moon() {
           toneMapped={false}
           fog={false}
           transparent
-          opacity={0.12}
+          opacity={0.08}
           depthWrite={false}
           side={THREE.BackSide}
         />
@@ -269,12 +273,19 @@ export default function MazeGame() {
 
   return (
     <div className="relative h-screen w-full">
-      <Canvas shadows camera={{ fov: 72, near: 0.05, far: 200 }} dpr={[1, 1.75]}>
+      <Canvas
+        shadows
+        camera={{ fov: 72, near: 0.05, far: 200 }}
+        dpr={[1, 1.75]}
+        gl={{ localClippingEnabled: true }}
+      >
         <XR store={store}>
           <color attach="background" args={["#070b16"]} />
           <fog attach="fog" args={["#070b16", 22, 75]} />
           <Stars radius={80} depth={40} count={4500} factor={4} saturation={0} fade speed={0.6} />
-          <Moon />
+          <Suspense fallback={null}>
+            <Moon />
+          </Suspense>
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />
           <directionalLight

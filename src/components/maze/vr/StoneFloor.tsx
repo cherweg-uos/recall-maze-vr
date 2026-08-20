@@ -105,11 +105,18 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
   );
 }
 
+/** clip everything below the ground plane — buried stone never gets shaded */
+const GROUND_CLIP = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
 function StonePart({ mesh, items }: { mesh: THREE.Mesh; items: Placement[] }) {
   const ref = useRef<THREE.InstancedMesh>(null);
 
   const material = useMemo(() => {
-    const m = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.Material;
+    const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.Material;
+    const m = src.clone();
+    m.clippingPlanes = [GROUND_CLIP];
+    m.clipShadows = true;
+    m.needsUpdate = true;
     return m;
   }, [mesh]);
 

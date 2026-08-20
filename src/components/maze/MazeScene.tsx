@@ -248,16 +248,22 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   );
 }
 
-/** All wall segments as one instanced batch — swap the geometry/material later for hedges. */
-function Walls({ maze }: { maze: Maze }) {
-  const walls = useMemo(() => buildWalls(maze), [maze]);
+/** Wall segments as chunked instanced batches — swap geometry/material later for hedges. */
+const WALL_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
+const WALL_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#eceae4",
+  roughness: 0.95,
+  metalness: 0,
+});
+
+function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
   const ref = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const m = new THREE.Matrix4();
-    walls.forEach((w, i) => {
+    boxes.forEach((w, i) => {
       m.compose(
         new THREE.Vector3(w.x, WALL_H / 2, w.z),
         new THREE.Quaternion(),
@@ -265,25 +271,44 @@ function Walls({ maze }: { maze: Maze }) {
       );
       mesh.setMatrixAt(i, m);
     });
-    mesh.count = walls.length;
+    mesh.count = boxes.length;
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [walls]);
+  }, [boxes]);
 
   return (
     <instancedMesh
-      key={walls.length}
       ref={ref}
-      args={[undefined as never, undefined as never, walls.length]}
+      args={[WALL_GEOMETRY, WALL_MATERIAL, boxes.length]}
       castShadow
       receiveShadow
       frustumCulled
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#eceae4" roughness={0.95} metalness={0} />
-    </instancedMesh>
+      visible={visible}
+    />
   );
 }
+
+function Walls({ maze, visible }: { maze: Maze; visible: Set<string> }) {
+  const chunks = useMemo(() => {
+    const map = new Map<string, WallBox[]>();
+    for (const w of buildWalls(maze)) {
+      const key = chunkKey(w.col, w.row);
+      const list = map.get(key);
+      if (list) list.push(w);
+      else map.set(key, [w]);
+    }
+    return [...map.entries()];
+  }, [maze]);
+
+  return (
+    <group>
+      {chunks.map(([key, boxes]) => (
+        <WallChunk key={`${key}:${boxes.length}`} boxes={boxes} visible={visible.has(key)} />
+      ))}
+    </group>
+  );
+}
+
 
 function GoalMarker({ col, row, color }: { col: number; row: number; color: string }) {
   const ref = useRef<THREE.Mesh>(null);

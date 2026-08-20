@@ -87,7 +87,7 @@ function Moon() {
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-    </Billboard>
+    </group>
   );
 }
 

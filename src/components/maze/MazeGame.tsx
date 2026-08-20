@@ -7,6 +7,7 @@ import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
+import { PlayerGlow } from "./vr/PlayerGlow";
 import { Stars, useTexture } from "@react-three/drei";
 import moonTextureUrl from "@/assets/moon_disc.png";
 import {
@@ -126,7 +127,10 @@ function MenuRig({ settings }: { settings: GameSettings }) {
 
   return (
     <>
-      <XROrigin ref={originRef} />
+      <group ref={originRef}>
+        <XROrigin />
+        <PlayerGlow />
+      </group>
       <TeleportFloor
         size={40}
         radius={MENU_RADIUS}

@@ -59,9 +59,12 @@ export function visibleChunks(maze: Maze, col: number, row: number): Set<string>
   const out = new Set<string>();
   const add = (c: number, r: number) => {
     out.add(chunkKey(c, r));
-    // walls on a cell's N/W edge belong to the neighbouring chunk
+    // a wall bordering this cell may be owned by any of the four neighbours,
+    // including the hidden cell it occludes — keep all their chunks
     out.add(chunkKey(Math.max(0, c - 1), r));
     out.add(chunkKey(c, Math.max(0, r - 1)));
+    out.add(chunkKey(Math.min(maze.cols - 1, c + 1), r));
+    out.add(chunkKey(c, Math.min(maze.rows - 1, r + 1)));
   };
 
   add(col, row);

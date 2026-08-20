@@ -142,7 +142,7 @@ export function StoneFloor({
       }
     }
     return out;
-  }, [cols, rows, cell, width, depth, centerX, centerZ, apron, seed]);
+  }, [cols, rows, cell, width, depth, centerX, centerZ, apron, radius, fadeRadius, seed]);
 
 
   const groups = useMemo(

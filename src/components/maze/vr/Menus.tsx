@@ -21,12 +21,19 @@ import { levelConfig } from "@/lib/maze";
 /** Panels render at the origin of a FacingAnchor, which puts them in front of the player. */
 const PANEL_POS: [number, number, number] = [0, 0, 0];
 
+/** Radius of the circular platform the player can teleport around on. */
+export const MENU_RADIUS = 5;
+
 export function MenuRoom() {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#b3bbc0" roughness={1} />
+        <circleGeometry args={[MENU_RADIUS, 96]} />
+        <meshStandardMaterial color="#39424f" roughness={1} />
+      </mesh>
+      <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[MENU_RADIUS - 0.08, MENU_RADIUS, 96]} />
+        <meshBasicMaterial color={UI.accentSoft} transparent opacity={0.7} />
       </mesh>
       <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.56, 64]} />
@@ -35,6 +42,7 @@ export function MenuRoom() {
     </group>
   );
 }
+
 
 export function TitlePanel({
   onStart,

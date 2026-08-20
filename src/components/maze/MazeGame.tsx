@@ -284,7 +284,7 @@ export default function MazeGame() {
     <div className="relative h-screen w-full">
       <Canvas
         shadows
-        camera={{ fov: 72, near: 0.05, far: 200 }}
+        camera={{ fov: 72, near: 0.05, far: 700 }}
         dpr={[1, 1.75]}
         gl={{ localClippingEnabled: true }}
       >

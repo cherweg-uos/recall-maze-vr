@@ -244,27 +244,40 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   );
 }
 
+/** All wall segments as one instanced batch — swap the geometry/material later for hedges. */
 function Walls({ maze }: { maze: Maze }) {
   const walls = useMemo(() => buildWalls(maze), [maze]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    walls.forEach((w, i) => {
+      m.compose(
+        new THREE.Vector3(w.x, WALL_H / 2, w.z),
+        new THREE.Quaternion(),
+        new THREE.Vector3(w.w, WALL_H, w.d),
+      );
+      mesh.setMatrixAt(i, m);
+    });
+    mesh.count = walls.length;
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [walls]);
+
   return (
-    <group>
-      {walls.map((w, i) => (
-        <group key={i}>
-          <mesh position={[w.x, WALL_H / 2, w.z]} castShadow receiveShadow>
-            <boxGeometry args={[w.w, WALL_H, w.d]} />
-            <meshStandardMaterial color="#eceae4" roughness={0.95} metalness={0} />
-          </mesh>
-          <mesh position={[w.x, WALL_H - 0.06, w.z]}>
-            <boxGeometry args={[w.w + 0.06, 0.12, w.d + 0.06]} />
-            <meshStandardMaterial color="#9aa3a8" roughness={0.8} />
-          </mesh>
-          <mesh position={[w.x, 0.08, w.z]}>
-            <boxGeometry args={[w.w + 0.05, 0.16, w.d + 0.05]} />
-            <meshStandardMaterial color="#b6bec3" roughness={0.9} />
-          </mesh>
-        </group>
-      ))}
-    </group>
+    <instancedMesh
+      key={walls.length}
+      ref={ref}
+      args={[undefined as never, undefined as never, walls.length]}
+      castShadow
+      receiveShadow
+      frustumCulled
+    >
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#eceae4" roughness={0.95} metalness={0} />
+    </instancedMesh>
   );
 }
 

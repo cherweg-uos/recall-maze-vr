@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 
-const BASE = 2.5;
+const BASE = 4.2;
 
 /** Warm lantern-like glow carried by the player; parented to the rig group. */
 export function PlayerGlow() {

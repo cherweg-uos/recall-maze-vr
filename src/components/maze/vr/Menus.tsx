@@ -63,7 +63,7 @@ export function TitlePanel({
           Maze Recall
         </Label>
         <Label position={[0, 0.52, 0.02]} size={0.07} color={UI.danger} maxWidth={1.3}>
-          Study the route, then walk it from memory
+          Study the route, then walk it from memory. Don't leave the Path!
         </Label>
         {items.map(([label, fn], i) => (
           <Button3D

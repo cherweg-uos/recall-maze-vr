@@ -1,30 +1,26 @@
-# Hedge walls
+# Hedge wall model replaces the placeholder walls
 
-Swap the placeholder white boxes for the uploaded hedge model, keeping the existing chunked-instancing and culling system untouched.
+The new `hedge_wall.glb` is a proper wall panel, not a bush: one mesh, one material (basecolor + normal), 530 vertices, measuring about 1.0 m long, 1.0 m tall and 0.22 m thick, sitting on the ground. That fits the maze walls far better than the earlier hedge blob — it tiles cleanly in both directions.
 
-## What the model is
+## Fitting it to the walls
 
-One mesh, one PBR material (basecolor + normal + roughness/metal), 252 vertices — very cheap. Its natural footprint is about 0.98 m long, 0.58 m tall, 0.33 m thick, sitting on the ground (Y starts at 0).
+Maze wall segments are 3.18 m long and 2.5 m tall.
 
-## How it gets fitted to the walls
-
-Maze walls are 3.18 m long and 2.5 m tall. Rather than stretching one copy into that shape (which would smear the foliage texture and make it ~1.4 m thick), each wall segment is built from repeated hedge pieces:
-
-- Along the wall: 3 pieces per segment, each scaled slightly (~1.06x) so they meet with no gaps.
-- In height: pieces stacked in rows using the same scale, so the hedge reads at natural leaf density up to the 2.5 m wall height, with the top row trimmed to land exactly on 2.5 m.
-- Thickness stays at the model's natural proportion (about 0.35 m), which is wider than the current 0.18 m boxes — corridors get slightly narrower and feel more like a real hedge maze. Walkable cell centres and teleport logic are unchanged, so gameplay is unaffected.
-- Alternating pieces get a 180 degree yaw flip and a couple of degrees of random tilt so the repetition isn't obvious.
-
-If the stacked rows look wrong in practice (visible seams or over-dense foliage), the fallback is 3 pieces along the length with a single vertically stretched row — a one-line change in the same place.
+- **Along the length:** 3 panels per segment, stretched ~1.06x so they butt together with no seam gaps.
+- **In height:** 3 rows, each scaled to 0.833 m, so the stack lands exactly on the 2.5 m wall height.
+- **Thickness:** kept at the model's natural ~0.22 m (close to the current 0.18 m boxes), so corridor width barely changes and no gameplay logic is touched.
+- Panels are oriented per wall segment (north/south walls run along X, east/west walls along Z).
+- Alternating panels get a 180 degree flip so the repeating texture doesn't read as an obvious pattern.
+- Material is double-sided in the file, so hedges look right from both corridor sides.
 
 ## Performance
 
-Everything stays instanced: all hedge pieces of a chunk go into one `InstancedMesh` per chunk, exactly like the current wall boxes, so draw calls stay per-chunk rather than per-piece, and existing frustum + line-of-sight chunk culling keeps working. At 252 triangles per piece even a level-20 maze stays light.
+All panels of a chunk go into one `InstancedMesh`, exactly like today's wall boxes — 9 instances per wall segment but still one draw call per chunk. Existing frustum culling and the line-of-sight chunk hiding keep working unchanged. At 500 triangles per panel a level-20 maze stays comfortably light for standalone headsets.
 
 ## Technical notes
 
-- Register `hedge.glb` with the asset CDN (`lovable-assets create`) and import the pointer JSON — the 5 MB binary stays out of the repo.
-- New `src/components/maze/vr/HedgeWalls.tsx`: loads the GLB with `useGLTF` (+ `preload`), extracts geometry/material, and exposes the existing `WallChunk` contract (`boxes`, `visible`).
-- `MazeScene.tsx`: `WallChunk` expands each `WallBox` into per-piece matrices (position along the box's long axis, stacked in Y) instead of one matrix per box; instance count becomes `boxes.length * piecesPerBox`. `computeBoundingSphere()`, `castShadow`/`receiveShadow`, `frustumCulled` all kept.
-- `THICK` stays as the logical wall thickness for maze layout; only the rendered hedge is wider.
-- Placeholder box geometry/material removed once the hedge renders.
+- Register `hedge_wall.glb` with the asset CDN (`lovable-assets create`) and import the pointer JSON so the 2.6 MB binary stays out of the repo.
+- New `src/components/maze/vr/HedgeWall.tsx`: `useGLTF` load (+ `preload`), extracts the single geometry/material, exports them for the wall batcher.
+- `MazeScene.tsx` `WallChunk`: expands each `WallBox` into 3x3 panel matrices (position offset along the box's long axis and in Y, scale `1.06 x 0.833 x lengthScale`, yaw per orientation); instance count becomes `boxes.length * 9`. Keeps `computeBoundingSphere()`, `castShadow`, `receiveShadow`, `frustumCulled`, and the `visible` chunk flag.
+- The placeholder box geometry and white material are removed once the hedge renders; `THICK` stays as the logical layout thickness.
+- Wall rendering is wrapped in `<Suspense fallback={null}>` like the stone floor so the GLB load never blocks the scene.

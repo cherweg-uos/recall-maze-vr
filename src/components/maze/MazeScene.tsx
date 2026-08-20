@@ -162,12 +162,17 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   });
 
   useKeyPress((code) => {
+    if (code === "KeyX") {
+      xHeld.current = true;
+      return;
+    }
+    if (movementLocked()) return;
     if (code === "ArrowLeft" || code === "KeyA") turn(-1);
     else if (code === "ArrowRight" || code === "KeyD") turn(1);
     else if (code === "KeyW" || code === "ArrowUp") stepForward();
     else if (code === "KeyS" || code === "ArrowDown") stepBack();
-    else if (code === "KeyX") xHeld.current = true;
   });
+
 
   useEffect(() => {
     const up = (e: KeyboardEvent) => {

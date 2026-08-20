@@ -26,15 +26,19 @@ export function MenuRoom() {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#b3bbc0" roughness={1} />
+        <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
-      <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <Suspense fallback={null}>
+        <StoneFloor width={44} depth={44} centerX={0} centerZ={0} seed={7} />
+      </Suspense>
+      <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.56, 64]} />
         <meshBasicMaterial color={UI.accentSoft} transparent opacity={0.5} />
       </mesh>
     </group>
   );
 }
+
 
 export function TitlePanel({
   onStart,

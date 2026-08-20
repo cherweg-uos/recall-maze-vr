@@ -272,27 +272,37 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
   );
 }
 
-/** Wall segments as chunked instanced batches — swap geometry/material later for hedges. */
-const WALL_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
-const WALL_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#eceae4",
-  roughness: 0.95,
-  metalness: 0,
-});
-
-function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
+/** Wall segments as chunked instanced batches of the hedge panel prop. */
+function WallChunk({
+  boxes,
+  visible,
+  hedge,
+}: {
+  boxes: WallBox[];
+  visible: boolean;
+  hedge: HedgeAsset;
+}) {
   const ref = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const pos = new THREE.Vector3();
+    const scale = new THREE.Vector3();
     boxes.forEach((w, i) => {
-      m.compose(
-        new THREE.Vector3(w.x, WALL_H / 2, w.z),
-        new THREE.Quaternion(),
-        new THREE.Vector3(w.w, WALL_H, w.d),
+      const alongX = w.w >= w.d;
+      const length = alongX ? w.w : w.d;
+      // panel runs along its local Z; yaw 90° puts it along world X
+      const flip = (w.col + w.row) % 2 === 0 ? 0 : Math.PI;
+      q.setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        (alongX ? Math.PI / 2 : 0) + flip,
       );
+      pos.set(w.x, 0, w.z);
+      scale.set(1, WALL_H / HEDGE_HEIGHT, length / HEDGE_LENGTH);
+      m.compose(pos, q, scale);
       mesh.setMatrixAt(i, m);
     });
     mesh.count = boxes.length;
@@ -303,7 +313,7 @@ function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
   return (
     <instancedMesh
       ref={ref}
-      args={[WALL_GEOMETRY, WALL_MATERIAL, boxes.length]}
+      args={[hedge.geometry, hedge.material, boxes.length]}
       castShadow
       receiveShadow
       frustumCulled
@@ -313,6 +323,7 @@ function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
 }
 
 function Walls({ maze, visible }: { maze: Maze; visible: Set<string> }) {
+  const hedge = useHedgeWall();
   const chunks = useMemo(() => {
     const map = new Map<string, WallBox[]>();
     for (const w of buildWalls(maze)) {
@@ -324,14 +335,22 @@ function Walls({ maze, visible }: { maze: Maze; visible: Set<string> }) {
     return [...map.entries()];
   }, [maze]);
 
+  if (!hedge) return null;
+
   return (
     <group>
       {chunks.map(([key, boxes]) => (
-        <WallChunk key={`${key}:${boxes.length}`} boxes={boxes} visible={visible.has(key)} />
+        <WallChunk
+          key={`${key}:${boxes.length}`}
+          boxes={boxes}
+          visible={visible.has(key)}
+          hedge={hedge}
+        />
       ))}
     </group>
   );
 }
+
 
 
 function GoalMarker({ col, row, color }: { col: number; row: number; color: string }) {

@@ -12,6 +12,10 @@ export const UI = {
   danger: "#b8443a",
 };
 
+/** Menu surfaces swallow pointer events so the teleport floor never sees them. */
+const stop = (e: ThreeEvent<PointerEvent>) => e.stopPropagation();
+
+
 export function Panel({
   width,
   height,
@@ -28,11 +32,11 @@ export function Panel({
 } & React.ComponentProps<"group">) {
   return (
     <group {...props}>
-      <mesh position={[0, 0, -0.012]}>
+      <mesh position={[0, 0, -0.012]} onPointerMove={stop} onPointerDown={stop} onPointerUp={stop}>
         <boxGeometry args={[width + radius, height + radius, 0.02]} />
         <meshBasicMaterial color={UI.panelEdge} toneMapped={false} />
       </mesh>
-      <mesh>
+      <mesh onPointerMove={stop} onPointerDown={stop} onPointerUp={stop}>
         <boxGeometry args={[width, height, 0.02]} />
         <meshBasicMaterial color={color} toneMapped={false} />
       </mesh>

@@ -46,12 +46,46 @@ type Phase =
 
 const store = createXRStore({ emulate: false });
 
+/** Direction the moonlight comes from; the moon disc is drawn along this ray. */
+const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
+
+/** A moon disc far away in the sky, matching the moonlight direction. */
+function Moon() {
+  const p = MOON_DIR.clone().multiplyScalar(120);
+  return (
+    <group position={[p.x, p.y, p.z]} raycast={() => null}>
+      <mesh raycast={() => null}>
+        <sphereGeometry args={[5.5, 32, 32]} />
+        <meshBasicMaterial color="#eef3ff" toneMapped={false} fog={false} />
+      </mesh>
+      <mesh raycast={() => null} scale={[3.2, 3.2, 3.2]}>
+        <sphereGeometry args={[5.5, 24, 24]} />
+        <meshBasicMaterial
+          color="#8ea6dd"
+          toneMapped={false}
+          fog={false}
+          transparent
+          opacity={0.12}
+          depthWrite={false}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 /** Menu locomotion: free teleport on the floor plus 30° snap turning. */
 function MenuRig({ settings }: { settings: GameSettings }) {
   const { camera } = useThree();
   const originRef = useRef<THREE.Group>(null);
   const pos = useRef(new THREE.Vector2(0, 0));
   const yaw = useRef(0);
+
+  // entering the menu space always drops the player centred and facing the panel
+  useEffect(() => {
+    pos.current.set(0, 0);
+    yaw.current = 0;
+  }, []);
 
   useSticks({ settings, onYaw: (r) => (yaw.current -= r) });
 
@@ -240,6 +274,7 @@ export default function MazeGame() {
           <color attach="background" args={["#070b16"]} />
           <fog attach="fog" args={["#070b16", 22, 75]} />
           <Stars radius={80} depth={40} count={4500} factor={4} saturation={0} fade speed={0.6} />
+          <Moon />
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />
           <directionalLight

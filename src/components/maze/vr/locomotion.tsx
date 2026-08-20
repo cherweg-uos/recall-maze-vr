@@ -1,6 +1,7 @@
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useXRInputSourceState } from "@react-three/xr";
 import { useRef, useState } from "react";
+import type * as THREE from "three";
 import { UI } from "./ui3d";
 import type { GameSettings } from "@/lib/gameSettings";
 

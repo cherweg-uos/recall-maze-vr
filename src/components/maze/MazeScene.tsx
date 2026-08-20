@@ -356,6 +356,22 @@ interface WorldProps {
 
 /** The playable maze: floor, walls, goal and the player rig. */
 export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
+  const [at, setAt] = useState({ col: maze.start.col, row: maze.start.row });
+
+  useEffect(() => {
+    setAt({ col: maze.start.col, row: maze.start.row });
+  }, [maze]);
+
+  const handleCell = useCallback(
+    (col: number, row: number) => {
+      setAt({ col, row });
+      onCell(col, row);
+    },
+    [onCell],
+  );
+
+  const visible = useMemo(() => visibleChunks(maze, at.col, at.row), [maze, at]);
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -363,13 +379,21 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>
-        <StoneFloor cols={maze.cols} rows={maze.rows} cell={CELL} seed={maze.cols * 131 + maze.rows} />
+        <StoneFloor
+          cols={maze.cols}
+          rows={maze.rows}
+          cell={CELL}
+          seed={maze.cols * 131 + maze.rows}
+          chunkSize={CHUNK_CELLS * CELL}
+          visibleChunks={visible}
+        />
       </Suspense>
-      <Walls maze={maze} />
+      <Walls maze={maze} visible={visible} />
       <Goals maze={maze} settings={settings} />
-      <Player maze={maze} settings={settings} onCell={onCell} timeLeftRef={timeLeftRef} />
+      <Player maze={maze} settings={settings} onCell={handleCell} timeLeftRef={timeLeftRef} />
     </group>
   );
 }
+
 
 export default MazeWorld;

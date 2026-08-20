@@ -135,12 +135,13 @@ export function LevelSelectPanel({
 }
 
 type TimeKey = "briefingBase" | "briefingPerLevel" | "mazeBase" | "mazePerLevel";
-type Tab = "movement" | "time" | "maze";
+type Tab = "movement" | "time" | "maze" | "audio";
 
 const TABS: [Tab, string][] = [
   ["movement", "Movement"],
   ["time", "Time"],
   ["maze", "Maze"],
+  ["audio", "Audio"],
 ];
 
 interface TabProps {
@@ -322,6 +323,26 @@ function MazeTab({ settings, onChange }: TabProps) {
   );
 }
 
+function AudioTab({ settings, onChange }: TabProps) {
+  return (
+    <group>
+      <SliderRow
+        position={[0, 0.66, 0.02]}
+        label="Music volume"
+        valueText={`${Math.round(settings.musicVolume * 100)}%`}
+        value={settings.musicVolume}
+        min={MUSIC_VOLUME_RANGE.min}
+        max={MUSIC_VOLUME_RANGE.max}
+        step={MUSIC_VOLUME_RANGE.step}
+        onChange={(v) => onChange({ ...settings, musicVolume: v })}
+      />
+      <Label position={[0, 0.38, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.7}>
+        {settings.musicVolume <= 0 ? "Background music is muted." : "Background music loops for the whole session."}
+      </Label>
+    </group>
+  );
+}
+
 export function SettingsPanel({
   settings,
   onChange,
@@ -343,10 +364,10 @@ export function SettingsPanel({
             key={id}
             label={label}
             onClick={() => setTab(id)}
-            width={0.55}
+            width={0.44}
             height={0.16}
-            size={0.055}
-            position={[-0.6 + i * 0.6, 1.0, 0.03]}
+            size={0.05}
+            position={[-0.72 + i * 0.48, 1.0, 0.03]}
             color={tab === id ? UI.accentSoft : "#e9e4d9"}
           />
         ))}
@@ -354,6 +375,7 @@ export function SettingsPanel({
           {tab === "movement" && <MovementTab settings={settings} onChange={onChange} />}
           {tab === "time" && <TimeTab settings={settings} onChange={onChange} />}
           {tab === "maze" && <MazeTab settings={settings} onChange={onChange} />}
+          {tab === "audio" && <AudioTab settings={settings} onChange={onChange} />}
         </group>
         <Button3D label="Back" onClick={onBack} width={0.6} height={0.18} position={[0, -1.2, 0.03]} />
       </Panel>

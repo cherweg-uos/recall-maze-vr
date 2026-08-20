@@ -73,6 +73,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   fakeGoalsEnabled: true,
   fakeGoalCount: 3,
   fakeGoalDistinct: false,
+  godMode: false,
   mazeShape: { ...DEFAULT_SHAPE },
 };
 

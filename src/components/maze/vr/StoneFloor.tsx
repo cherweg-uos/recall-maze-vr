@@ -17,7 +17,7 @@ function rng(seed: number) {
 }
 
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
-const SINK = -0.005;
+const SINK = -0.015;
 
 interface Props {
   cols: number;
@@ -42,15 +42,7 @@ interface Placement {
   apron: boolean;
 }
 
-export function StoneFloor({
-  cols,
-  rows,
-  cell,
-  apron = 14,
-  seed = 1,
-  chunkSize = 24,
-  visibleChunks,
-}: Props) {
+export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1, chunkSize = 24, visibleChunks }: Props) {
   const gltf = useGLTF(URL);
 
   const parts = useMemo(() => {
@@ -152,15 +144,7 @@ function clippedMaterial(mesh: THREE.Mesh) {
   return m;
 }
 
-function StonePart({
-  mesh,
-  items,
-  visible,
-}: {
-  mesh: THREE.Mesh;
-  items: Placement[];
-  visible: boolean;
-}) {
+function StonePart({ mesh, items, visible }: { mesh: THREE.Mesh; items: Placement[]; visible: boolean }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const material = useMemo(() => clippedMaterial(mesh), [mesh]);
 

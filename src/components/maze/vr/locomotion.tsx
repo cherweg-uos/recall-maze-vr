@@ -110,8 +110,12 @@ export function TeleportFloor({
   onTeleport: (x: number, z: number) => void;
 }) {
   const [target, setTarget] = useState<TeleportTarget | null>(null);
+  const floorRef = useRef<THREE.Mesh>(null);
 
-  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget => {
+  /** null when something else (a menu panel, the briefing board…) is in front. */
+  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget | null => {
+    const first = e.intersections[0]?.object;
+    if (first && floorRef.current && first !== floorRef.current) return null;
     const t = snap ? snap(e.point.x, e.point.z) : { x: e.point.x, z: e.point.z, valid: true };
     if (radius !== undefined && Math.hypot(t.x, t.z) > radius) return { ...t, valid: false };
     return t;
@@ -120,6 +124,7 @@ export function TeleportFloor({
   return (
     <group>
       <mesh
+        ref={floorRef}
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.125, 0]}
         onPointerMove={(e: ThreeEvent<PointerEvent>) => setTarget(resolve(e))}
@@ -128,7 +133,7 @@ export function TeleportFloor({
         onPointerUp={(e: ThreeEvent<PointerEvent>) => {
           const t = resolve(e);
           setTarget(t);
-          if (t.valid && !movementLocked()) onTeleport(t.x, t.z);
+          if (t?.valid && !movementLocked()) onTeleport(t.x, t.z);
         }}
       >
         <planeGeometry args={[size, size]} />

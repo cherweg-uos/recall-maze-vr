@@ -58,9 +58,9 @@ function Moon() {
   const tex = useTexture(moonAsset.url);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
-  // static orientation: disc faces the world origin once, then never turns
+  // static orientation: disc's front (+Z) points at the world origin once, then never turns
   const quat = useMemo(() => {
-    const m = new THREE.Matrix4().lookAt(p, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+    const m = new THREE.Matrix4().lookAt(new THREE.Vector3(0, 0, 0), p, new THREE.Vector3(0, 1, 0));
     return new THREE.Quaternion().setFromRotationMatrix(m);
   }, [p.x, p.y, p.z]);
   return (

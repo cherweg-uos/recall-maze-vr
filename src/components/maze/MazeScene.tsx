@@ -211,11 +211,23 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
       camera.rotation.set(0, yaw.current, 0, "YXZ");
     }
 
+    // B (right) / Y (left) gives up the run
+    const bPressed =
+      rightCtrl?.gamepad?.["b-button"]?.state === "pressed" ||
+      leftCtrl?.gamepad?.["y-button"]?.state === "pressed";
+    if (bPressed && abortArmed.current) {
+      abortArmed.current = false;
+      abortRef.current?.();
+    } else if (!bPressed) {
+      abortArmed.current = true;
+    }
+
     // hold X (or the X key on desktop) to peek at the remaining time
     const xPressed =
       leftCtrl?.gamepad?.["x-button"]?.state === "pressed" ||
       rightCtrl?.gamepad?.["a-button"]?.state === "pressed" ||
       xHeld.current;
+
     if (hudRef.current) {
       hudRef.current.visible = xPressed;
       if (xPressed) {

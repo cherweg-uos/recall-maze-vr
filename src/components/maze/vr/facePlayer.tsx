@@ -62,20 +62,19 @@ export function useFacePlayer(
   }, []);
 }
 
-/** Wrapper group that is always placed in front of the player when it appears. */
+/**
+ * Fixed panel anchor. The player is always returned to the centre of the menu
+ * platform between scenes, so panels sit at a constant spot in front of it.
+ */
 export function FacingAnchor({
   children,
-  distance,
-  height,
+  distance = PANEL_DISTANCE,
+  height = PANEL_HEIGHT,
 }: {
   children: ReactNode;
   distance?: number;
   height?: number;
 }) {
-  const ref = useRef<THREE.Group>(null);
-  useFacePlayer(ref, {
-    ...(distance === undefined ? {} : { distance }),
-    ...(height === undefined ? {} : { height }),
-  });
-  return <group ref={ref}>{children}</group>;
+  return <group position={[0, height, -distance]}>{children}</group>;
 }
+

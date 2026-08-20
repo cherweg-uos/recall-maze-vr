@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { XROrigin, useXRInputSourceState } from "@react-three/xr";
-import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { StoneFloor } from "./vr/StoneFloor";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";

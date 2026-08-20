@@ -1,6 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { XROrigin, useXRInputSourceState } from "@react-three/xr";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { StoneFloor } from "./vr/StoneFloor";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dir, Maze } from "@/lib/maze";
@@ -312,8 +313,11 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <meshStandardMaterial color="#aab2b8" roughness={1} />
+        <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
+      <Suspense fallback={null}>
+        <StoneFloor cols={maze.cols} rows={maze.rows} cell={CELL} seed={maze.cols * 131 + maze.rows} />
+      </Suspense>
       <Walls maze={maze} />
       <Goals maze={maze} settings={settings} />
       <Player maze={maze} settings={settings} onCell={onCell} timeLeftRef={timeLeftRef} />

@@ -30,11 +30,11 @@ export function Panel({
     <group {...props}>
       <mesh position={[0, 0, -0.012]}>
         <boxGeometry args={[width + radius, height + radius, 0.02]} />
-        <meshStandardMaterial color={UI.panelEdge} roughness={0.9} />
+        <meshBasicMaterial color={UI.panelEdge} toneMapped={false} />
       </mesh>
       <mesh>
         <boxGeometry args={[width, height, 0.02]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
+        <meshBasicMaterial color={color} toneMapped={false} />
       </mesh>
       {children}
     </group>
@@ -115,7 +115,7 @@ export function Button3D({
           }}
         >
           <boxGeometry args={[width, height, 0.03]} />
-          <meshStandardMaterial color={hover ? UI.accent : color} roughness={0.7} />
+          <meshBasicMaterial color={hover ? UI.accent : color} toneMapped={false} />
         </mesh>
         <Text
           position={[0, 0, 0.021]}
@@ -175,15 +175,15 @@ export function Slider3D({ value, min, max, step = 1, width = 1.2, onChange }: S
         onPointerOut={() => setDragging(false)}
       >
         <boxGeometry args={[width, 0.11, 0.02]} />
-        <meshStandardMaterial color="#e3ded3" roughness={0.9} />
+        <meshBasicMaterial color="#e3ded3" toneMapped={false} />
       </mesh>
       <mesh position={[-width / 2 + (t * width) / 2, 0, 0.012]} raycast={() => null}>
         <boxGeometry args={[Math.max(0.001, t * width), 0.11, 0.01]} />
-        <meshStandardMaterial color={UI.accentSoft} roughness={0.8} />
+        <meshBasicMaterial color={UI.accentSoft} toneMapped={false} />
       </mesh>
       <mesh position={[handleX, 0, 0.03]} raycast={() => null}>
         <cylinderGeometry args={[0.055, 0.055, 0.04, 20]} />
-        <meshStandardMaterial color={UI.accent} roughness={0.5} />
+        <meshBasicMaterial color={UI.accent} toneMapped={false} />
       </mesh>
     </group>
   );

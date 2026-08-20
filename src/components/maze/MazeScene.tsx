@@ -76,9 +76,11 @@ interface PlayerProps {
   onCell: (col: number, row: number) => void;
   /** ms remaining, shown while the X button (or desktop X key) is held */
   timeLeftRef: React.RefObject<number>;
+  /** B / Y button (or desktop B key) gives up the run */
+  onAbort?: (() => void) | undefined;
 }
 
-function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
+function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
   const originRef = useRef<THREE.Group>(null);
   const hudRef = useRef<THREE.Group>(null);
   const hudTextRef = useRef<{ text: string } | null>(null);
@@ -93,9 +95,13 @@ function Player({ maze, settings, onCell, timeLeftRef }: PlayerProps) {
   }, []);
   const yaw = useRef(startYaw(maze));
   const xHeld = useRef(false);
+  const abortArmed = useRef(true);
+  const abortRef = useRef(onAbort);
+  abortRef.current = onAbort;
 
   const leftCtrl = useXRInputSourceState("controller", "left");
   const rightCtrl = useXRInputSourceState("controller", "right");
+
 
   useEffect(() => {
     cell.current = { col: maze.start.col, row: maze.start.row };

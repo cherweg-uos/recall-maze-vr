@@ -272,38 +272,80 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
   );
 }
 
-/** Wall segments as chunked instanced batches — swap geometry/material later for hedges. */
-const WALL_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
-const WALL_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#eceae4",
-  roughness: 0.95,
-  metalness: 0,
-});
+/** Hedge prop: one instance per wall segment, batched per chunk. */
+function useHedgeAsset() {
+  const gltf = useGLTF(hedgeAsset.url);
+  return useMemo(() => {
+    let mesh: THREE.Mesh | null = null;
+    gltf.scene.traverse((o) => {
+      if (!mesh && (o as THREE.Mesh).isMesh) mesh = o as THREE.Mesh;
+    });
+    if (!mesh) return null;
+    const src = mesh as THREE.Mesh;
+    const geometry = src.geometry.clone();
+    geometry.computeBoundingBox();
+    const bb = geometry.boundingBox!;
+    // sit the prop on the ground and centre it across its thin axis
+    geometry.translate(
+      -(bb.min.x + bb.max.x) / 2,
+      -bb.min.y,
+      -(bb.min.z + bb.max.z) / 2,
+    );
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    const size = new THREE.Vector3();
+    geometry.boundingBox!.getSize(size);
+    const material = (
+      Array.isArray(src.material) ? src.material[0] : src.material
+    ).clone() as THREE.Material;
+    (material as THREE.MeshStandardMaterial).side = THREE.FrontSide;
+    return { geometry, material, size };
+  }, [gltf]);
+}
 
-function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
+function WallChunk({
+  boxes,
+  visible,
+  asset,
+}: {
+  boxes: WallBox[];
+  visible: boolean;
+  asset: NonNullable<ReturnType<typeof useHedgeAsset>>;
+}) {
   const ref = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
     const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const yUp = new THREE.Vector3(0, 1, 0);
     boxes.forEach((w, i) => {
+      // model's long axis is Z; walls running along X need a quarter turn
+      const alongX = w.w > w.d;
+      q.setFromAxisAngle(yUp, alongX ? Math.PI / 2 : 0);
+      const long = Math.max(w.w, w.d);
+      const thin = Math.min(w.w, w.d);
       m.compose(
-        new THREE.Vector3(w.x, WALL_H / 2, w.z),
-        new THREE.Quaternion(),
-        new THREE.Vector3(w.w, WALL_H, w.d),
+        new THREE.Vector3(w.x, 0, w.z),
+        q,
+        new THREE.Vector3(
+          thin / asset.size.x,
+          WALL_H / asset.size.y,
+          long / asset.size.z,
+        ),
       );
       mesh.setMatrixAt(i, m);
     });
     mesh.count = boxes.length;
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
-  }, [boxes]);
+  }, [boxes, asset]);
 
   return (
     <instancedMesh
       ref={ref}
-      args={[WALL_GEOMETRY, WALL_MATERIAL, boxes.length]}
+      args={[asset.geometry, asset.material, boxes.length]}
       castShadow
       receiveShadow
       frustumCulled
@@ -313,6 +355,7 @@ function WallChunk({ boxes, visible }: { boxes: WallBox[]; visible: boolean }) {
 }
 
 function Walls({ maze, visible }: { maze: Maze; visible: Set<string> }) {
+  const asset = useHedgeAsset();
   const chunks = useMemo(() => {
     const map = new Map<string, WallBox[]>();
     for (const w of buildWalls(maze)) {
@@ -324,10 +367,17 @@ function Walls({ maze, visible }: { maze: Maze; visible: Set<string> }) {
     return [...map.entries()];
   }, [maze]);
 
+  if (!asset) return null;
+
   return (
     <group>
       {chunks.map(([key, boxes]) => (
-        <WallChunk key={`${key}:${boxes.length}`} boxes={boxes} visible={visible.has(key)} />
+        <WallChunk
+          key={`${key}:${boxes.length}`}
+          boxes={boxes}
+          visible={visible.has(key)}
+          asset={asset}
+        />
       ))}
     </group>
   );

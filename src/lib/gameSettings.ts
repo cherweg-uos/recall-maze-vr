@@ -78,11 +78,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   fakeGoalCount: 3,
   fakeGoalDistinct: false,
   godMode: false,
-  musicVolume: 0.5,
+  musicVolume: 0.05,
   mazeShape: { ...DEFAULT_SHAPE },
 };
-
-
 
 const SETTINGS_KEY = "maze-recall:settings:v1";
 const SCORES_KEY = "maze-recall:scores:v1";
@@ -103,7 +101,6 @@ export function loadSettings(): GameSettings {
   }
   return { ...DEFAULT_SETTINGS, mazeShape: { ...DEFAULT_SHAPE } };
 }
-
 
 export function saveSettings(s: GameSettings) {
   try {
@@ -132,9 +129,7 @@ export function saveScores(list: HighscoreEntry[]) {
 }
 
 export function addScore(list: HighscoreEntry[], entry: HighscoreEntry): HighscoreEntry[] {
-  const next = [...list, entry].sort((a, b) =>
-    a.level === b.level ? a.timeMs - b.timeMs : b.level - a.level,
-  );
+  const next = [...list, entry].sort((a, b) => (a.level === b.level ? a.timeMs - b.timeMs : b.level - a.level));
   return next.slice(0, 50);
 }
 

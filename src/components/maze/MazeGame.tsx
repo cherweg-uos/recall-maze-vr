@@ -273,7 +273,12 @@ export default function MazeGame() {
 
   return (
     <div className="relative h-screen w-full">
-      <Canvas shadows camera={{ fov: 72, near: 0.05, far: 200 }} dpr={[1, 1.75]}>
+      <Canvas
+        shadows
+        camera={{ fov: 72, near: 0.05, far: 200 }}
+        dpr={[1, 1.75]}
+        gl={{ localClippingEnabled: true }}
+      >
         <XR store={store}>
           <color attach="background" args={["#070b16"]} />
           <fog attach="fog" args={["#070b16", 22, 75]} />

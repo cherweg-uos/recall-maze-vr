@@ -260,7 +260,7 @@ export default function MazeGame() {
         return;
       }
       // backtracking onto an already visited cell is always safe
-      if (!pathSet.has(key) && !visited.current.has(key)) {
+      if (!settings.godMode && !pathSet.has(key) && !visited.current.has(key)) {
         lockMovement(500);
         setFailReason("You stepped off the route.");
         setPhase("failed");
@@ -268,7 +268,7 @@ export default function MazeGame() {
       }
       visited.current.add(key);
     },
-    [phase, maze, pathSet, level, recordScore],
+    [phase, maze, pathSet, level, recordScore, settings.godMode],
   );
 
   // every scene swap freezes locomotion briefly so a button press can't teleport

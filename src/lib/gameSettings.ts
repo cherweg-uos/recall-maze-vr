@@ -26,6 +26,8 @@ export interface GameSettings {
   fakeGoalCount: number;
   /** give decoys their own colour instead of matching the real goal */
   fakeGoalDistinct: boolean;
+  /** never fail for leaving the solution route */
+  godMode: boolean;
   /** procedural layout knobs */
   mazeShape: MazeShape;
 }

@@ -481,3 +481,5 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef, onAbort }: Worl
 
 
 export default MazeWorld;
+
+useGLTF.preload(hedgeAsset.url);

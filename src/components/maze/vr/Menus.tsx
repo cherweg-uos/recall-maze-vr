@@ -28,7 +28,7 @@ export function MenuRoom() {
     <group>
       {/* Circular ground disc = the 5 m movement limit */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[5, 96]} />
+        <circleGeometry args={[6, 96]} />
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>
@@ -43,11 +43,9 @@ export function MenuRoom() {
         <ringGeometry args={[1.5, 1.56, 64]} />
         <meshBasicMaterial color={UI.accentSoft} transparent opacity={0.5} />
       </mesh>
-
     </group>
   );
 }
-
 
 export function TitlePanel({
   onStart,

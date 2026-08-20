@@ -17,7 +17,7 @@ function rng(seed: number) {
 }
 
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
-const SINK = -1;
+const SINK = -0.005;
 
 interface Props {
   cols: number;

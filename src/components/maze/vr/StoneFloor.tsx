@@ -16,8 +16,6 @@ function rng(seed: number) {
   };
 }
 
-/** tile footprint in metres — 1.5 m gives exactly 4 tiles per 3 m maze cell */
-const TILE = 1.5;
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
 const SINK = -0.005;
 
@@ -65,6 +63,8 @@ export function StoneFloor({
 
   const placements = useMemo(() => {
     const rand = rng(seed);
+    /** one tile per maze cell */
+    const TILE = cell;
     const w = cols * cell;
     const d = rows * cell;
     const minX = -apron;

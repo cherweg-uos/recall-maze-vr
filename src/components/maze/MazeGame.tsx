@@ -7,7 +7,7 @@ import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
-import { Billboard, Stars, useTexture } from "@react-three/drei";
+import { Stars, useTexture } from "@react-three/drei";
 import moonAsset from "@/assets/full_moon.png.asset.json";
 import {
   HighscoresPanel,
@@ -52,14 +52,19 @@ const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
 const MOON_DIST = 400;
 const MOON_RADIUS = 18;
 
-/** A flat moon disc far away in the sky, matching the moonlight direction. */
+/** A flat moon disc fixed in the sky, matching the moonlight direction. */
 function Moon() {
   const p = MOON_DIR.clone().multiplyScalar(MOON_DIST);
   const tex = useTexture(moonAsset.url);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
+  // static orientation: disc faces the world origin once, then never turns
+  const quat = useMemo(() => {
+    const m = new THREE.Matrix4().lookAt(p, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+    return new THREE.Quaternion().setFromRotationMatrix(m);
+  }, [p.x, p.y, p.z]);
   return (
-    <Billboard position={[p.x, p.y, p.z]} follow>
+    <group position={[p.x, p.y, p.z]} quaternion={quat}>
       <mesh raycast={() => null} renderOrder={-1}>
         <circleGeometry args={[MOON_RADIUS, 64]} />
         <meshBasicMaterial
@@ -82,7 +87,7 @@ function Moon() {
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-    </Billboard>
+    </group>
   );
 }
 

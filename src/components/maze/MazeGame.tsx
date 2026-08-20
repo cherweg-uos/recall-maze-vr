@@ -238,7 +238,7 @@ export default function MazeGame() {
       <Canvas shadows camera={{ fov: 72, near: 0.05, far: 200 }} dpr={[1, 1.75]}>
         <XR store={store}>
           <color attach="background" args={["#070b16"]} />
-          <fog attach="fog" args={["#070b16", 8, 46]} />
+          {/* fogtest */}
           <Stars radius={80} depth={40} count={4500} factor={4} saturation={0} fade speed={0.6} />
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />

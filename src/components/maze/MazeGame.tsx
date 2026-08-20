@@ -77,12 +77,12 @@ function Moon() {
         />
       </mesh>
       <mesh raycast={() => null} position={[0, 0, -0.5]} renderOrder={-2}>
-        <circleGeometry args={[MOON_RADIUS * 2.6, 48]} />
+        <circleGeometry args={[MOON_RADIUS * 1.9, 48]} />
         <meshBasicMaterial
           color="#8ea6dd"
           transparent
           side={THREE.DoubleSide}
-          opacity={0.07}
+          opacity={0.045}
           toneMapped={false}
           fog={false}
           depthWrite={false}

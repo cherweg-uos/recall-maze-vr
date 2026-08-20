@@ -99,17 +99,23 @@ export interface TeleportTarget {
  */
 export function TeleportFloor({
   size = 200,
+  radius,
   snap,
   onTeleport,
 }: {
   size?: number;
+  /** when set, only points within this distance of the origin are valid */
+  radius?: number | undefined;
   snap?: ((x: number, z: number) => TeleportTarget) | undefined;
   onTeleport: (x: number, z: number) => void;
 }) {
   const [target, setTarget] = useState<TeleportTarget | null>(null);
 
-  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget =>
-    snap ? snap(e.point.x, e.point.z) : { x: e.point.x, z: e.point.z, valid: true };
+  const resolve = (e: ThreeEvent<PointerEvent>): TeleportTarget => {
+    const t = snap ? snap(e.point.x, e.point.z) : { x: e.point.x, z: e.point.z, valid: true };
+    if (radius !== undefined && Math.hypot(t.x, t.z) > radius) return { ...t, valid: false };
+    return t;
+  };
 
   return (
     <group>
@@ -122,12 +128,13 @@ export function TeleportFloor({
         onPointerUp={(e: ThreeEvent<PointerEvent>) => {
           const t = resolve(e);
           setTarget(t);
-          if (t.valid) onTeleport(t.x, t.z);
+          if (t.valid && !movementLocked()) onTeleport(t.x, t.z);
         }}
       >
         <planeGeometry args={[size, size]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
+
 
       {target && (
         <group position={[target.x, 0.135, target.z]} rotation={[-Math.PI / 2, 0, 0]}>

@@ -21,7 +21,6 @@ import { levelConfig } from "@/lib/maze";
 /** Panels render at the origin of a FacingAnchor, which puts them in front of the player. */
 const PANEL_POS: [number, number, number] = [0, 0, 0];
 
-
 export function MenuRoom() {
   return (
     <group>
@@ -63,7 +62,7 @@ export function TitlePanel({
         <Label position={[0, 0.68, 0.02]} size={0.13}>
           Maze Recall
         </Label>
-        <Label position={[0, 0.52, 0.02]} size={0.045} color={UI.inkSoft} maxWidth={1.3}>
+        <Label position={[0, 0.52, 0.02]} size={0.05} color={UI.danger} maxWidth={1.3}>
           Study the route, then walk it from memory
         </Label>
         {items.map(([label, fn], i) => (
@@ -121,13 +120,7 @@ export function LevelSelectPanel({
           position={[0.4, -0.4, 0.03]}
           color={UI.accentSoft}
         />
-        <Button3D
-          label="Back"
-          onClick={onBack}
-          width={0.55}
-          height={0.18}
-          position={[-0.42, -0.4, 0.03]}
-        />
+        <Button3D label="Back" onClick={onBack} width={0.55} height={0.18} position={[-0.42, -0.4, 0.03]} />
       </Panel>
     </group>
   );
@@ -236,13 +229,7 @@ function TimeTab({ settings, onChange }: TabProps) {
 }
 
 function MazeTab({ settings, onChange }: TabProps) {
-  const shapeKeys: ShapeKey[] = [
-    "decoyDensity",
-    "branchDepth",
-    "loopiness",
-    "twistiness",
-    "fillCoverage",
-  ];
+  const shapeKeys: ShapeKey[] = ["decoyDensity", "branchDepth", "loopiness", "twistiness", "fillCoverage"];
   const fake = settings.fakeGoalsEnabled;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
@@ -307,9 +294,7 @@ function MazeTab({ settings, onChange }: TabProps) {
             min={r.min}
             max={r.max}
             step={r.step}
-            onChange={(nv) =>
-              onChange({ ...settings, mazeShape: { ...settings.mazeShape, [key]: nv } })
-            }
+            onChange={(nv) => onChange({ ...settings, mazeShape: { ...settings.mazeShape, [key]: nv } })}
           />
         );
       })}
@@ -350,27 +335,13 @@ export function SettingsPanel({
           {tab === "time" && <TimeTab settings={settings} onChange={onChange} />}
           {tab === "maze" && <MazeTab settings={settings} onChange={onChange} />}
         </group>
-        <Button3D
-          label="Back"
-          onClick={onBack}
-          width={0.6}
-          height={0.18}
-          position={[0, -1.2, 0.03]}
-        />
+        <Button3D label="Back" onClick={onBack} width={0.6} height={0.18} position={[0, -1.2, 0.03]} />
       </Panel>
     </group>
   );
 }
 
-
-
-export function HighscoresPanel({
-  scores,
-  onBack,
-}: {
-  scores: HighscoreEntry[];
-  onBack: () => void;
-}) {
+export function HighscoresPanel({ scores, onBack }: { scores: HighscoreEntry[]; onBack: () => void }) {
   const rows = scores.slice(0, 10);
   return (
     <group position={PANEL_POS}>
@@ -405,13 +376,7 @@ export function HighscoresPanel({
             </Label>
           </group>
         ))}
-        <Button3D
-          label="Back"
-          onClick={onBack}
-          width={0.6}
-          height={0.18}
-          position={[0, -0.68, 0.03]}
-        />
+        <Button3D label="Back" onClick={onBack} width={0.6} height={0.18} position={[0, -0.68, 0.03]} />
       </Panel>
     </group>
   );
@@ -449,13 +414,7 @@ export function ResultPanel({
           position={[0, -0.16, 0.03]}
           color={UI.accentSoft}
         />
-        <Button3D
-          label="Back to title"
-          onClick={onTitle}
-          width={0.85}
-          height={0.19}
-          position={[0, -0.4, 0.03]}
-        />
+        <Button3D label="Back to title" onClick={onTitle} width={0.85} height={0.19} position={[0, -0.4, 0.03]} />
       </Panel>
     </group>
   );

@@ -13,7 +13,7 @@ const modifier = new SimplifyModifier();
 
 function simplify(base: THREE.BufferGeometry, keep: number): THREE.BufferGeometry {
   try {
-    const count = base.attributes.position?.count ?? 0;
+    const count = base.attributes["position"]?.count ?? 0;
     const remove = Math.floor(count * (1 - keep));
     if (remove < 1) return base;
     const out = modifier.modify(base, remove);

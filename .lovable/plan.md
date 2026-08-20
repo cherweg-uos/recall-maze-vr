@@ -21,9 +21,14 @@ WebGL/WebXR gives no built-in occlusion queries, so this is done with maze-aware
 
 - Each frame (throttled, only when the player's cell or facing changes meaningfully), compute which maze cells are potentially visible from the player's cell by walking the corridor graph: a cell is reachable-visible if there's an open line of sight through gaps, limited by a max distance.
 - Chunks with no potentially-visible cell are hidden outright; this is what actually removes the maze behind walls.
-- Because hedge walls will later be see-through-ish at the top, the visibility test stays conservative (any partially visible cell keeps its chunk).
+- Hedges are treated as fully solid, sight-blocking walls (same as stone walls), so the visibility test can be strict: a cell is only kept if there is an unobstructed corridor line of sight to it.
 - The stone floor uses the same chunk visibility set, plus the frustum test, so floor chunks around the corner also stop drawing.
 - In the menu space nothing changes — the platform is small and always fully visible.
+
+## 4. Bigger floor tiles (4 per maze cell)
+
+Maze cells are 3 m and tiles are currently 1 m, so every cell costs 9 tiles. Switching to 1.5 m tiles gives exactly 4 tiles per cell — a bit over half the instance count, with the stone texture scaled up correspondingly (stones read larger, which suits an outdoor hedge maze). The apron slabs scale up in the same proportion so the two grids stay aligned.
+
 
 ## Technical notes
 

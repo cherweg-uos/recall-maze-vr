@@ -271,7 +271,15 @@ export default function MazeGame() {
     [phase, maze, pathSet, level, recordScore, settings.godMode],
   );
 
+  const abortRun = useCallback(() => {
+    if (phase !== "playing") return;
+    lockMovement(500);
+    setFailReason("You gave up the run.");
+    setPhase("failed");
+  }, [phase]);
+
   // every scene swap freezes locomotion briefly so a button press can't teleport
+
   useEffect(() => {
     lockMovement(500);
   }, [phase]);

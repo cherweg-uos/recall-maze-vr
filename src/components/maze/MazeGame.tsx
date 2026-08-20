@@ -274,6 +274,7 @@ export default function MazeGame() {
           <color attach="background" args={["#070b16"]} />
           <fog attach="fog" args={["#070b16", 22, 75]} />
           <Stars radius={80} depth={40} count={4500} factor={4} saturation={0} fade speed={0.6} />
+          <Moon />
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />
           <directionalLight

@@ -19,6 +19,8 @@ interface WallBox {
   z: number;
   w: number;
   d: number;
+  col: number;
+  row: number;
 }
 
 function buildWalls(maze: Maze): WallBox[] {
@@ -27,16 +29,18 @@ function buildWalls(maze: Maze): WallBox[] {
     for (const c of rowCells) {
       const x0 = c.col * CELL;
       const z0 = c.row * CELL;
-      if (c.walls.N) out.push({ x: x0 + CELL / 2, z: z0, w: CELL + THICK, d: THICK });
-      if (c.walls.W) out.push({ x: x0, z: z0 + CELL / 2, w: THICK, d: CELL + THICK });
+      const at = { col: c.col, row: c.row };
+      if (c.walls.N) out.push({ x: x0 + CELL / 2, z: z0, w: CELL + THICK, d: THICK, ...at });
+      if (c.walls.W) out.push({ x: x0, z: z0 + CELL / 2, w: THICK, d: CELL + THICK, ...at });
       if (c.row === maze.rows - 1 && c.walls.S)
-        out.push({ x: x0 + CELL / 2, z: z0 + CELL, w: CELL + THICK, d: THICK });
+        out.push({ x: x0 + CELL / 2, z: z0 + CELL, w: CELL + THICK, d: THICK, ...at });
       if (c.col === maze.cols - 1 && c.walls.E)
-        out.push({ x: x0 + CELL, z: z0 + CELL / 2, w: THICK, d: CELL + THICK });
+        out.push({ x: x0 + CELL, z: z0 + CELL / 2, w: THICK, d: CELL + THICK, ...at });
     }
   }
   return out;
 }
+
 
 const CARDINALS: Dir[] = ["N", "E", "S", "W"];
 

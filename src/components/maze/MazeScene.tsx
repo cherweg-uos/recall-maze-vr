@@ -415,7 +415,13 @@ export function MazeWorld({ maze, settings, onCell, timeLeftRef, onAbort }: Worl
       </Suspense>
       <Walls maze={maze} visible={visible} />
       <Goals maze={maze} settings={settings} />
-      <Player maze={maze} settings={settings} onCell={handleCell} timeLeftRef={timeLeftRef} />
+      <Player
+        maze={maze}
+        settings={settings}
+        onCell={handleCell}
+        timeLeftRef={timeLeftRef}
+        onAbort={onAbort}
+      />
     </group>
   );
 }

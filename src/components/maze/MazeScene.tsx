@@ -376,10 +376,11 @@ interface WorldProps {
   settings: GameSettings;
   onCell: (col: number, row: number) => void;
   timeLeftRef: React.RefObject<number>;
+  onAbort?: (() => void) | undefined;
 }
 
 /** The playable maze: floor, walls, goal and the player rig. */
-export function MazeWorld({ maze, settings, onCell, timeLeftRef }: WorldProps) {
+export function MazeWorld({ maze, settings, onCell, timeLeftRef, onAbort }: WorldProps) {
   const [at, setAt] = useState({ col: maze.start.col, row: maze.start.row });
 
   useEffect(() => {

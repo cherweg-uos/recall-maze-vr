@@ -5,16 +5,19 @@ import * as THREE from "three";
 import { generateMaze, pathToSteps } from "@/lib/maze";
 import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
-import { TeleportFloor, useSticks } from "./vr/locomotion";
+import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
+import { Stars } from "@react-three/drei";
 import {
   HighscoresPanel,
   LevelSelectPanel,
+  MENU_RADIUS,
   MenuRoom,
   ResultPanel,
   SettingsPanel,
   TitlePanel,
 } from "./vr/Menus";
+
 import {
   DEFAULT_SETTINGS,
   MIN_LEVEL,

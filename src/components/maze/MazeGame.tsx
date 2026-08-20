@@ -20,6 +20,7 @@ import {
   TitlePanel,
 } from "./vr/Menus";
 
+import { playBgm, setBgmVolume, stopBgm } from "@/lib/bgm";
 import {
   DEFAULT_SETTINGS,
   MIN_LEVEL,
@@ -289,6 +290,18 @@ export default function MazeGame() {
   useEffect(() => {
     lockMovement(500);
   }, [phase]);
+
+  // background music: runs for the whole session, stops on the flat entry screen
+  useEffect(() => {
+    setBgmVolume(settings.musicVolume);
+  }, [settings.musicVolume]);
+
+  useEffect(() => {
+    if (phase === "enter") stopBgm();
+    else playBgm();
+  }, [phase]);
+
+  useEffect(() => () => stopBgm(), []);
 
   const backToTitle = useCallback(() => setPhase("title"), []);
 

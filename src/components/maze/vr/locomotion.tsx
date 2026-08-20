@@ -100,7 +100,7 @@ export function TeleportFloor({
     <group>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.012, 0]}
+        position={[0, 0.125, 0]}
         onPointerMove={(e: ThreeEvent<PointerEvent>) => setTarget(resolve(e))}
         onPointerDown={(e: ThreeEvent<PointerEvent>) => setTarget(resolve(e))}
         onPointerOut={() => setTarget(null)}
@@ -115,7 +115,7 @@ export function TeleportFloor({
       </mesh>
 
       {target && (
-        <group position={[target.x, 0.02, target.z]} rotation={[-Math.PI / 2, 0, 0]}>
+        <group position={[target.x, 0.135, target.z]} rotation={[-Math.PI / 2, 0, 0]}>
           <mesh raycast={() => null}>
             <circleGeometry args={[0.42, 32]} />
             <meshBasicMaterial

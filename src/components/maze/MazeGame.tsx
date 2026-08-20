@@ -8,7 +8,7 @@ import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
 import { Stars, useTexture } from "@react-three/drei";
-import moonAsset from "@/assets/full_moon.png.asset.json";
+import moonTextureUrl from "@/assets/moon_disc.png";
 import {
   HighscoresPanel,
   LevelSelectPanel,
@@ -48,19 +48,19 @@ type Phase =
 const store = createXRStore({ emulate: false });
 
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
-const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
+const MOON_DIR = new THREE.Vector3(10, 7, -20).normalize();
 const MOON_DIST = 400;
-const MOON_RADIUS = 18;
+const MOON_RADIUS = 22;
 
 /** A flat moon disc fixed in the sky, matching the moonlight direction. */
 function Moon() {
   const p = MOON_DIR.clone().multiplyScalar(MOON_DIST);
-  const tex = useTexture(moonAsset.url);
+  const tex = useTexture(moonTextureUrl);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
-  // static orientation: disc faces the world origin once, then never turns
+  // static orientation: disc's front (+Z) points at the world origin once, then never turns
   const quat = useMemo(() => {
-    const m = new THREE.Matrix4().lookAt(p, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+    const m = new THREE.Matrix4().lookAt(new THREE.Vector3(0, 0, 0), p, new THREE.Vector3(0, 1, 0));
     return new THREE.Quaternion().setFromRotationMatrix(m);
   }, [p.x, p.y, p.z]);
   return (
@@ -70,17 +70,19 @@ function Moon() {
         <meshBasicMaterial
           map={tex}
           transparent
+          side={THREE.DoubleSide}
           toneMapped={false}
           fog={false}
           depthWrite={false}
         />
       </mesh>
       <mesh raycast={() => null} position={[0, 0, -0.5]} renderOrder={-2}>
-        <circleGeometry args={[MOON_RADIUS * 2.6, 48]} />
+        <circleGeometry args={[MOON_RADIUS * 1.9, 48]} />
         <meshBasicMaterial
           color="#8ea6dd"
           transparent
-          opacity={0.07}
+          side={THREE.DoubleSide}
+          opacity={0.045}
           toneMapped={false}
           fog={false}
           depthWrite={false}
@@ -311,7 +313,7 @@ export default function MazeGame() {
           <hemisphereLight args={["#8fa6d8", "#141a24", 0.5]} />
           <ambientLight color="#4a5a80" intensity={0.35} />
           <directionalLight
-            position={[14, 22, -10]}
+            position={[MOON_DIR.x * 30, MOON_DIR.y * 30, MOON_DIR.z * 30]}
             color="#cdd9ff"
             intensity={1.05}
             castShadow

@@ -49,7 +49,7 @@ const store = createXRStore({ emulate: false });
 
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
 const MOON_DIR = new THREE.Vector3(10, 7, -20).normalize();
-const MOON_DIST = 400;
+const MOON_DIST = 60;
 const MOON_RADIUS = 22;
 
 /** A flat moon disc fixed in the sky, matching the moonlight direction. */

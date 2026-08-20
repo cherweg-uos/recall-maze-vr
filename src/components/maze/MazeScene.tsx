@@ -11,6 +11,7 @@ import { DELTA, dirBetween } from "@/lib/maze";
 import { formatClock, type GameSettings } from "@/lib/gameSettings";
 import { UI } from "./vr/ui3d";
 import { TeleportFloor, movementLocked, snapAngle, useSticks, type TeleportTarget } from "./vr/locomotion";
+import { PlayerGlow } from "./vr/PlayerGlow";
 
 export const CELL = 3;
 const WALL_H = 2.5;
@@ -247,7 +248,10 @@ function Player({ maze, settings, onCell, timeLeftRef, onAbort }: PlayerProps) {
 
   return (
     <>
-      <XROrigin ref={originRef} />
+      <group ref={originRef}>
+        <XROrigin />
+        <PlayerGlow />
+      </group>
       <TeleportFloor
         size={Math.max(maze.cols, maze.rows) * CELL * 2}
         snap={snap}

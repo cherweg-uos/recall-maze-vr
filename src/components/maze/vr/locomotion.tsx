@@ -9,10 +9,23 @@ const DEAD = 0.75;
 const RECENTER = 0.25;
 const SMOOTH_DEAD = 0.18;
 
+/** Global movement lock, used across scene transitions to avoid accidental input. */
+let lockedUntil = 0;
+
+/** Disable all locomotion for `ms` milliseconds. */
+export function lockMovement(ms = 500) {
+  lockedUntil = Math.max(lockedUntil, performance.now() + ms);
+}
+
+export function movementLocked() {
+  return performance.now() < lockedUntil;
+}
+
 /** Radians rotated per snap turn for the current settings. */
 export function snapAngle(settings: GameSettings) {
   return ((settings.snapDegrees ?? 30) * Math.PI) / 180;
 }
+
 
 /**
  * Thumbstick locomotion. Sideways push either snaps the view by the configured

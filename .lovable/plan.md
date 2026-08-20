@@ -36,4 +36,4 @@ Maze cells are 3 m and tiles are currently 1 m, so every cell costs 9 tiles. Swi
 - `MazeScene.tsx`: `Walls` splits `buildWalls(maze)` boxes into chunk buckets keyed by `floor(col/CH), floor(row/CH)`; render one `<instancedMesh>` per bucket with `computeBoundingSphere()`.
 - New `src/lib/mazeVisibility.ts`: `visibleCells(maze, col, row, maxDist)` doing a corridor flood/ray walk over open edges; returns a `Set` of chunk keys.
 - `MazeScene.tsx` uses a `useFrame` throttle (recompute only on cell change) to set `visible` on each wall/floor chunk group.
-- `StoneFloor.tsx`: accepts an optional `visibleChunks` set and chunk size, splits placements per chunk per part, keeps `receiveShadow`, `castShadow={false}`, and the ground clip plane.
+- `StoneFloor.tsx`: `TILE` 1 → 1.5 (CELL/2, exact 4-per-cell grid) with instance scale 1.5; apron step/scale scaled by the same factor. Accepts an optional `visibleChunks` set and chunk size, splits placements per chunk per part, keeps `receiveShadow`, `castShadow={false}`, and the ground clip plane.

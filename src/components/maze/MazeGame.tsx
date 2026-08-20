@@ -7,7 +7,7 @@ import MazeWorld from "./MazeScene";
 import { BriefingBoard } from "./vr/BriefingBoard";
 import { TeleportFloor, lockMovement, useSticks } from "./vr/locomotion";
 import { FacingAnchor } from "./vr/facePlayer";
-import { Stars, useTexture } from "@react-three/drei";
+import { Billboard, Stars, useTexture } from "@react-three/drei";
 import moonAsset from "@/assets/full_moon.png.asset.json";
 import {
   HighscoresPanel,
@@ -49,34 +49,43 @@ const store = createXRStore({ emulate: false });
 
 /** Direction the moonlight comes from; the moon disc is drawn along this ray. */
 const MOON_DIR = new THREE.Vector3(14, 22, -10).normalize();
+const MOON_DIST = 400;
+const MOON_RADIUS = 18;
 
-/** A moon far away in the sky, matching the moonlight direction. */
+/** A flat moon disc far away in the sky, matching the moonlight direction. */
 function Moon() {
-  const p = MOON_DIR.clone().multiplyScalar(120);
+  const p = MOON_DIR.clone().multiplyScalar(MOON_DIST);
   const tex = useTexture(moonAsset.url);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
   return (
-    <group position={[p.x, p.y, p.z]} raycast={() => null}>
-      <mesh raycast={() => null}>
-        <sphereGeometry args={[5.5, 48, 48]} />
-        <meshBasicMaterial map={tex} toneMapped={false} fog={false} />
-      </mesh>
-      <mesh raycast={() => null} scale={[3.2, 3.2, 3.2]}>
-        <sphereGeometry args={[5.5, 24, 24]} />
+    <Billboard position={[p.x, p.y, p.z]} follow>
+      <mesh raycast={() => null} renderOrder={-1}>
+        <circleGeometry args={[MOON_RADIUS, 64]} />
         <meshBasicMaterial
-          color="#8ea6dd"
+          map={tex}
+          transparent
           toneMapped={false}
           fog={false}
-          transparent
-          opacity={0.08}
           depthWrite={false}
-          side={THREE.BackSide}
         />
       </mesh>
-    </group>
+      <mesh raycast={() => null} position={[0, 0, -0.5]} renderOrder={-2}>
+        <circleGeometry args={[MOON_RADIUS * 2.6, 48]} />
+        <meshBasicMaterial
+          color="#8ea6dd"
+          transparent
+          opacity={0.07}
+          toneMapped={false}
+          fog={false}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </Billboard>
   );
 }
+
 
 /** Menu locomotion: free teleport on the floor plus 30° snap turning. */
 function MenuRig({ settings }: { settings: GameSettings }) {
@@ -275,7 +284,7 @@ export default function MazeGame() {
     <div className="relative h-screen w-full">
       <Canvas
         shadows
-        camera={{ fov: 72, near: 0.05, far: 200 }}
+        camera={{ fov: 72, near: 0.05, far: 700 }}
         dpr={[1, 1.75]}
         gl={{ localClippingEnabled: true }}
       >

@@ -16,7 +16,8 @@ function rng(seed: number) {
   };
 }
 
-const TILE = 1; // model is ~1x1 unit
+/** tile footprint in metres — 1.5 m gives exactly 4 tiles per 3 m maze cell */
+const TILE = 1.5;
 /** how deep the slab sits in the base floor (visible thickness ~0.12) */
 const SINK = -0.005;
 
@@ -27,6 +28,10 @@ interface Props {
   /** extra metres of stone beyond the maze footprint */
   apron?: number;
   seed?: number;
+  /** metres per render chunk; tiles are batched per chunk for culling */
+  chunkSize?: number;
+  /** chunk keys currently visible; apron chunks are always kept */
+  visibleChunks?: Set<string>;
 }
 
 interface Placement {
@@ -36,9 +41,18 @@ interface Placement {
   y: number;
   yaw: number;
   scale: number;
+  apron: boolean;
 }
 
-export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
+export function StoneFloor({
+  cols,
+  rows,
+  cell,
+  apron = 14,
+  seed = 1,
+  chunkSize = 24,
+  visibleChunks,
+}: Props) {
   const gltf = useGLTF(URL);
 
   const parts = useMemo(() => {
@@ -67,13 +81,14 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
           z: z + TILE / 2,
           y: SINK + (rand() - 0.5) * 0.008,
           yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.035,
-          scale: 1,
+          scale: TILE,
+          apron: false,
         });
       }
     }
     // apron: larger slabs on their own matching grid step, sparsely filled
-    const APRON_SCALE = 1.6;
-    const step = TILE * APRON_SCALE;
+    const APRON_SCALE = TILE * 1.6;
+    const step = APRON_SCALE;
     for (let x = minX; x < maxX; x += step) {
       for (let z = minZ; z < maxZ; z += step) {
         if (x + step > 0 && x < w && z + step > 0 && z < d) continue;
@@ -85,22 +100,37 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
           y: SINK + (rand() - 0.5) * 0.02,
           yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.05,
           scale: APRON_SCALE,
+          apron: true,
         });
       }
     }
     return out;
   }, [cols, rows, cell, apron, seed]);
 
-  const groups = useMemo(
-    () => [placements.filter((p) => p.part === 0), placements.filter((p) => p.part === 1)],
-    [placements],
-  );
+  /** one batch per (part, chunk) so frustum + occlusion culling can drop them */
+  const batches = useMemo(() => {
+    const map = new Map<string, { part: number; key: string; apron: boolean; items: Placement[] }>();
+    for (const p of placements) {
+      const ck = `${Math.floor(p.x / chunkSize)},${Math.floor(p.z / chunkSize)}`;
+      const id = `${p.part}:${p.apron ? "a" : "m"}:${ck}`;
+      let b = map.get(id);
+      if (!b) {
+        b = { part: p.part, key: ck, apron: p.apron, items: [] };
+        map.set(id, b);
+      }
+      b.items.push(p);
+    }
+    return [...map.entries()];
+  }, [placements, chunkSize]);
 
   return (
     <group>
-      {parts.map((mesh, i) => (
-        <StonePart key={i} mesh={mesh} items={groups[i] ?? []} />
-      ))}
+      {batches.map(([id, b]) => {
+        const mesh = parts[b.part];
+        if (!mesh) return null;
+        const visible = b.apron || !visibleChunks || visibleChunks.has(b.key);
+        return <StonePart key={id} mesh={mesh} items={b.items} visible={visible} />;
+      })}
     </group>
   );
 }
@@ -108,17 +138,31 @@ export function StoneFloor({ cols, rows, cell, apron = 14, seed = 1 }: Props) {
 /** clip everything below the ground plane — buried stone never gets shaded */
 const GROUND_CLIP = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-function StonePart({ mesh, items }: { mesh: THREE.Mesh; items: Placement[] }) {
-  const ref = useRef<THREE.InstancedMesh>(null);
+const materialCache = new WeakMap<THREE.Mesh, THREE.Material>();
 
-  const material = useMemo(() => {
-    const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.Material;
-    const m = src.clone();
-    m.clippingPlanes = [GROUND_CLIP];
-    m.clipShadows = true;
-    m.needsUpdate = true;
-    return m;
-  }, [mesh]);
+function clippedMaterial(mesh: THREE.Mesh) {
+  const cached = materialCache.get(mesh);
+  if (cached) return cached;
+  const src = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.Material;
+  const m = src.clone();
+  m.clippingPlanes = [GROUND_CLIP];
+  m.clipShadows = true;
+  m.needsUpdate = true;
+  materialCache.set(mesh, m);
+  return m;
+}
+
+function StonePart({
+  mesh,
+  items,
+  visible,
+}: {
+  mesh: THREE.Mesh;
+  items: Placement[];
+  visible: boolean;
+}) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const material = useMemo(() => clippedMaterial(mesh), [mesh]);
 
   useLayoutEffect(() => {
     const inst = ref.current;
@@ -143,6 +187,8 @@ function StonePart({ mesh, items }: { mesh: THREE.Mesh; items: Placement[] }) {
       args={[mesh.geometry, material, items.length]}
       receiveShadow
       castShadow={false}
+      frustumCulled
+      visible={visible}
     />
   );
 }

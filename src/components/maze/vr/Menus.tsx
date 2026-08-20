@@ -27,11 +27,11 @@ export function MenuRoom() {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
+        <planeGeometry args={[20, 20]} />
         <meshStandardMaterial color="#6f6a63" roughness={1} />
       </mesh>
       <Suspense fallback={null}>
-        <StoneFloor width={44} depth={44} centerX={0} centerZ={0} seed={7} />
+        <StoneFloor radius={5} fadeRadius={7} centerX={0} centerZ={0} seed={7} />
       </Suspense>
       <mesh position={[0, 0.13, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[1.5, 1.56, 64]} />

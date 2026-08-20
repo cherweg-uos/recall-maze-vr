@@ -32,6 +32,10 @@ interface Props {
   centerZ?: number;
   /** extra metres of stone beyond the footprint */
   apron?: number;
+  /** circular mode: solid tiles within this radius (metres) */
+  radius?: number;
+  /** circular mode: tiles thin out between radius and this */
+  fadeRadius?: number;
   seed?: number;
 }
 
@@ -53,6 +57,8 @@ export function StoneFloor({
   centerX,
   centerZ,
   apron = 14,
+  radius,
+  fadeRadius,
   seed = 1,
 }: Props) {
   const gltf = useGLTF(URL);
@@ -67,6 +73,35 @@ export function StoneFloor({
 
   const placements = useMemo(() => {
     const rand = rng(seed);
+    // circular platform mode: solid disc + dithered fade ring, no apron
+    if (radius !== undefined) {
+      const cx = centerX ?? 0;
+      const cz = centerZ ?? 0;
+      const fade = Math.max(fadeRadius ?? radius + 2, radius);
+      const out: Placement[] = [];
+      const n = Math.ceil(fade / TILE) + 1;
+      for (let i = -n; i <= n; i++) {
+        for (let j = -n; j <= n; j++) {
+          const x = cx + (i + 0.5) * TILE;
+          const z = cz + (j + 0.5) * TILE;
+          const dist = Math.hypot(x - cx, z - cz);
+          if (dist > fade) continue;
+          if (dist > radius) {
+            const keep = 1 - (dist - radius) / (fade - radius);
+            if (rand() > keep) continue;
+          }
+          out.push({
+            part: rand() < 0.5 ? 0 : 1,
+            x,
+            z,
+            y: SINK + (rand() - 0.5) * 0.008,
+            yaw: Math.floor(rand() * 4) * (Math.PI / 2) + (rand() - 0.5) * 0.035,
+            scale: 1,
+          });
+        }
+      }
+      return out;
+    }
     const w = width ?? cols * cell;
     const d = depth ?? rows * cell;
     const originX = centerX !== undefined ? centerX - w / 2 : 0;
@@ -107,7 +142,7 @@ export function StoneFloor({
       }
     }
     return out;
-  }, [cols, rows, cell, width, depth, centerX, centerZ, apron, seed]);
+  }, [cols, rows, cell, width, depth, centerX, centerZ, apron, radius, fadeRadius, seed]);
 
 
   const groups = useMemo(

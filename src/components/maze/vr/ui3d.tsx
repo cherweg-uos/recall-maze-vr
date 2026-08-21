@@ -233,13 +233,13 @@ export function SliderRow({
   React.ComponentProps<"group">) {
   return (
     <group {...props}>
-      <group position={[0, 0.05, 0.02]}>
+      <group position={[0, 0.03, 0.02]}>
         <Slider3D value={value} min={min} max={max} step={step ?? 1} width={1.5} onChange={onChange} />
       </group>
-      <Label position={[-0.75, -0.09, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+      <Label position={[-0.75, -0.1, 0.02]} anchorX="left" size={0.055} color={UI.inkSoft}>
         {label}
       </Label>
-      <Label position={[0.75, -0.09, 0.02]} anchorX="right" size={0.058} color={UI.ink}>
+      <Label position={[0.75, -0.1, 0.02]} anchorX="right" size={0.055} color={UI.ink}>
         {valueText}
       </Label>
     </group>

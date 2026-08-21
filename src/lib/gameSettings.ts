@@ -42,7 +42,7 @@ export const MIN_LEVEL = 3;
 export const MAX_LEVEL = 20;
 
 export const SETTING_RANGES = {
-  briefingBase: { min: 10, max: 30, step: 1, label: "Briefing time", unit: "s" },
+  briefingBase: { min: 5, max: 25, step: 1, label: "Briefing time", unit: "s" },
   briefingPerLevel: { min: 1, max: 30, step: 1, label: "Briefing + per level", unit: "s" },
   mazeBase: { min: 60, max: 300, step: 10, label: "Maze time", unit: "s" },
   mazePerLevel: { min: 0, max: 60, step: 5, label: "Maze + per level", unit: "s" },
@@ -65,10 +65,10 @@ export const SHAPE_RANGES = {
 export type ShapeKey = keyof typeof SHAPE_RANGES;
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  briefingBase: 15,
+  briefingBase: 10,
   briefingPerLevel: 3,
-  mazeBase: 120,
-  mazePerLevel: 15,
+  mazeBase: 60,
+  mazePerLevel: 5,
   turnStyle: "snap",
   snapDegrees: 30,
   smoothDegPerSec: 120,

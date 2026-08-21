@@ -243,18 +243,6 @@ function MazeTab({ settings, onChange }: TabProps) {
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <group>
-      <Label position={[-0.75, 0.86, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
-        God mode (no fail off route)
-      </Label>
-      <Button3D
-        label={settings.godMode ? "On" : "Off"}
-        onClick={() => onChange({ ...settings, godMode: !settings.godMode })}
-        width={0.4}
-        height={0.15}
-        size={0.055}
-        position={[0.55, 0.86, 0.03]}
-        color={settings.godMode ? UI.accentSoft : "#e9e4d9"}
-      />
       <SliderRow
         position={[0, 0.62, 0.02]}
         label="Number of fake goals"
@@ -363,6 +351,22 @@ export function SettingsPanel({
         </group>
         <Button3D label="Back" onClick={onBack} width={0.6} height={0.18} position={[0, -1.2, 0.03]} />
       </Panel>
+      <group position={[0, 0.6, -0.025]} rotation={[0, Math.PI, 0]}>
+        <Panel width={0.9} height={0.5}>
+          <Label position={[0, 0.15, 0.02]} size={0.06}>
+            God mode
+          </Label>
+          <Button3D
+            label={settings.godMode ? "On" : "Off"}
+            onClick={() => onChange({ ...settings, godMode: !settings.godMode })}
+            width={0.5}
+            height={0.18}
+            size={0.055}
+            position={[0, -0.08, 0.03]}
+            color={settings.godMode ? UI.accentSoft : "#e9e4d9"}
+          />
+        </Panel>
+      </group>
     </group>
   );
 }

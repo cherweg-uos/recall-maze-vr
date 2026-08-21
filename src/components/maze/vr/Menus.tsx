@@ -256,7 +256,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         color={settings.godMode ? UI.accentSoft : "#e9e4d9"}
       />
       <SliderRow
-        position={[0, 0.58, 0.02]}
+        position={[0, 0.62, 0.02]}
         label="Number of fake goals"
         valueText={`${settings.fakeGoalCount}`}
         value={settings.fakeGoalCount}
@@ -265,7 +265,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         step={FAKE_GOAL_RANGE.step}
         onChange={(v) => onChange({ ...settings, fakeGoalCount: v })}
       />
-      <Label position={[-0.75, 0.22, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+      <Label position={[-0.75, 0.36, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
         Fake goal colour
       </Label>
       <Button3D
@@ -274,7 +274,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         width={0.42}
         height={0.15}
         size={0.055}
-        position={[0.18, 0.22, 0.03]}
+        position={[0.18, 0.36, 0.03]}
         color={settings.fakeGoalDistinct ? "#e9e4d9" : UI.accentSoft}
       />
       <Button3D
@@ -283,7 +283,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         width={0.42}
         height={0.15}
         size={0.055}
-        position={[0.64, 0.22, 0.03]}
+        position={[0.64, 0.36, 0.03]}
         color={settings.fakeGoalDistinct ? UI.accentSoft : "#e9e4d9"}
       />
       {shapeKeys.map((key, i) => {

@@ -218,7 +218,7 @@ function TimeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, 0.66 - i * 0.24, 0.02]}
+            position={[0, 0.66 - i * 0.26, 0.02]}
             label={r.label}
             valueText={formatSeconds(settings[key])}
             value={settings[key]}
@@ -292,7 +292,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, -0.04 - i * 0.24, 0.02]}
+            position={[0, 0.02 - i * 0.24, 0.02]}
             label={r.label}
             valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
             value={v}

@@ -23,10 +23,22 @@ In `SliderRow`:
 
 Then verify the existing vertical spacing between rows in `TimeTab` (currently 0.24 units) still keeps rows clearly separated, and tighten/expand if necessary. If the new label-below layout reduces the row height, reduce the spacing between rows slightly to keep panels compact; otherwise leave it as is.
 
+## Slider handle shape
+
+In `Slider3D`, replace the cylinder handle with a rectangular block (a thin, slightly taller box than the track) so it reads as a flat rectangular grip instead of a puck. Keep the accent colour and the non-raycasting behaviour so dragging still works off the track mesh.
+
+## Tick marks
+
+Add small tick marks along the track at every snap position, derived from `min`, `max`, and `step`:
+
+- Compute the step count; when it exceeds a readable limit (about 20 ticks), fall back to evenly spaced ticks at a coarser interval (or omit ticks entirely for very fine-grained sliders such as the 0–1 percentage knobs at 0.01 steps) so the track does not turn into a solid bar.
+- Ticks render as thin, low-contrast marks just under the track, non-interactive (`raycast={() => null}`) so they never block drag input.
+- The tick row sits between the track and the label text, keeping label-under-slider association intact.
+
 ## Visual result
 
-Each slider is read as: `[handle]  50%` then directly below it `Label text` — so there is no ambiguity about which label belongs to which control.
+Each slider reads as: rectangular handle on a ticked track, with `Label text` and its value directly underneath — no ambiguity about which label belongs to which control.
 
 ## Scope
 
-Only the settings slider layout; no changes to slider logic, audio settings, or other game mechanics.
+Only the settings slider presentation (layout, handle shape, ticks); no changes to slider value logic, snapping behaviour, or other game mechanics.

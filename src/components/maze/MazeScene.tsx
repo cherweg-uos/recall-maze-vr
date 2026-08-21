@@ -437,7 +437,7 @@ function GoalMarker({ col, row, color }: { col: number; row: number; color: stri
 const DECOY_COLOR = "#4f9bd1";
 
 function Goals({ maze, settings }: { maze: Maze; settings: GameSettings }) {
-  const decoys = settings.fakeGoalsEnabled ? maze.decoyGoals : [];
+  const decoys = maze.decoyGoals;
   const decoyColor = settings.fakeGoalDistinct ? DECOY_COLOR : UI.accent;
   return (
     <group>

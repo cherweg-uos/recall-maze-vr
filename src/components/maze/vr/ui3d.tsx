@@ -210,7 +210,7 @@ export function Slider3D({ value, min, max, step = 1, width = 1.2, onChange }: S
         </mesh>
       ))}
       <mesh position={[handleX, 0, 0.03]} raycast={() => null}>
-        <boxGeometry args={[0.055, 0.16, 0.035]} />
+        <boxGeometry args={[0.055, 0.14, 0.035]} />
         <meshBasicMaterial color={UI.accent} toneMapped={false} />
       </mesh>
     </group>

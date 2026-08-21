@@ -292,7 +292,7 @@ function MazeTab({ settings, onChange }: TabProps) {
         return (
           <SliderRow
             key={key}
-            position={[0, -0.1 - i * 0.24, 0.02]}
+            position={[0, -0.04 - i * 0.24, 0.02]}
             label={r.label}
             valueText={key === "branchDepth" ? `${v} cells` : pct(v)}
             value={v}

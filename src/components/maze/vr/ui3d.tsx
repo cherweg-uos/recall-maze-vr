@@ -145,10 +145,28 @@ interface SliderProps {
   onChange: (v: number) => void;
 }
 
+/** Max ticks we draw before the track would read as a solid bar. */
+const MAX_TICKS = 21;
+
+/** Snap positions to draw as ticks, or [] when the step is too fine to be readable. */
+function tickPositions(min: number, max: number, step: number): number[] {
+  if (!(step > 0) || max <= min) return [];
+  const steps = Math.round((max - min) / step);
+  if (steps < 1) return [];
+  // Coarsen until the tick count fits, but only by whole multiples of the step.
+  let stride = 1;
+  while (Math.floor(steps / stride) + 1 > MAX_TICKS) stride += 1;
+  if (stride > 1 && steps / stride < 2) return [];
+  const out: number[] = [];
+  for (let i = 0; i <= steps; i += stride) out.push((i * step) / (max - min));
+  return out;
+}
+
 export function Slider3D({ value, min, max, step = 1, width = 1.2, onChange }: SliderProps) {
   const [dragging, setDragging] = useState(false);
   const t = (value - min) / (max - min);
   const handleX = -width / 2 + t * width;
+  const ticks = tickPositions(min, max, step);
 
   const setFromEvent = (e: ThreeEvent<PointerEvent>) => {
     const local = e.object.worldToLocal(e.point.clone());
@@ -185,8 +203,14 @@ export function Slider3D({ value, min, max, step = 1, width = 1.2, onChange }: S
         <boxGeometry args={[Math.max(0.001, t * width), 0.11, 0.01]} />
         <meshBasicMaterial color={UI.accentSoft} toneMapped={false} />
       </mesh>
+      {ticks.map((f) => (
+        <mesh key={f} position={[-width / 2 + f * width, -0.082, 0.012]} raycast={() => null}>
+          <boxGeometry args={[0.008, 0.04, 0.01]} />
+          <meshBasicMaterial color={UI.panelEdge} toneMapped={false} />
+        </mesh>
+      ))}
       <mesh position={[handleX, 0, 0.03]} raycast={() => null}>
-        <cylinderGeometry args={[0.055, 0.055, 0.04, 20]} />
+        <boxGeometry args={[0.055, 0.16, 0.035]} />
         <meshBasicMaterial color={UI.accent} toneMapped={false} />
       </mesh>
     </group>
@@ -209,15 +233,15 @@ export function SliderRow({
   React.ComponentProps<"group">) {
   return (
     <group {...props}>
-      <Label position={[-0.75, 0.11, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
-        {label}
-      </Label>
-      <Label position={[0.75, 0.11, 0.02]} anchorX="right" size={0.058} color={UI.ink}>
-        {valueText}
-      </Label>
-      <group position={[0, -0.04, 0.02]}>
+      <group position={[0, 0.05, 0.02]}>
         <Slider3D value={value} min={min} max={max} step={step ?? 1} width={1.5} onChange={onChange} />
       </group>
+      <Label position={[-0.75, -0.09, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
+        {label}
+      </Label>
+      <Label position={[0.75, -0.09, 0.02]} anchorX="right" size={0.058} color={UI.ink}>
+        {valueText}
+      </Label>
     </group>
   );
 }

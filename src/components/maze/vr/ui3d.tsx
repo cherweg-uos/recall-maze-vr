@@ -204,9 +204,9 @@ export function Slider3D({ value, min, max, step = 1, width = 1.2, onChange }: S
         <meshBasicMaterial color={UI.accentSoft} toneMapped={false} />
       </mesh>
       {ticks.map((f) => (
-        <mesh key={f} position={[-width / 2 + f * width, -0.082, 0.012]} raycast={() => null}>
-          <boxGeometry args={[0.008, 0.04, 0.01]} />
-          <meshBasicMaterial color={UI.panelEdge} toneMapped={false} />
+        <mesh key={f} position={[-width / 2 + f * width, 0, 0.015]} raycast={() => null}>
+          <boxGeometry args={[0.006, 0.06, 0.005]} />
+          <meshBasicMaterial color={UI.panelEdge} toneMapped={false} transparent opacity={0.6} />
         </mesh>
       ))}
       <mesh position={[handleX, 0, 0.03]} raycast={() => null}>

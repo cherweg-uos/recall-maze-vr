@@ -335,15 +335,27 @@ function WallChunk({
     if (!mesh) return;
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
+    const qRoll = new THREE.Quaternion();
     const yUp = new THREE.Vector3(0, 1, 0);
+    const zLong = new THREE.Vector3(0, 0, 1);
     boxes.forEach((w, i) => {
+      // stable 2-bit variant per segment position: front-back flip x top-bottom flip
+      const h = Math.imul(Math.round(w.x * 100) | 0, 374761393) ^ Math.imul(Math.round(w.z * 100) | 0, 668265263);
+      const bits = ((h ^ (h >>> 13)) >>> 0) % 4;
+      const flipYaw = (bits & 1) === 1;
+      const flipUp = (bits & 2) === 2;
+
       // model's long axis is Z; walls running along X need a quarter turn
       const alongX = w.w > w.d;
-      q.setFromAxisAngle(yUp, alongX ? Math.PI / 2 : 0);
+      q.setFromAxisAngle(yUp, (alongX ? Math.PI / 2 : 0) + (flipYaw ? Math.PI : 0));
+      // 180 deg roll about the prop's own long axis turns the hedge upside down
+      qRoll.setFromAxisAngle(zLong, flipUp ? Math.PI : 0);
+      q.multiply(qRoll);
+
       const long = Math.max(w.w, w.d);
       const thin = Math.min(w.w, w.d);
       m.compose(
-        new THREE.Vector3(w.x, 0, w.z),
+        new THREE.Vector3(w.x, flipUp ? WALL_H : 0, w.z),
         q,
         new THREE.Vector3(
           thin / asset.size.x,
@@ -353,6 +365,7 @@ function WallChunk({
       );
       mesh.setMatrixAt(i, m);
     });
+
     mesh.count = boxes.length;
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();

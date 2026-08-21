@@ -240,7 +240,6 @@ function TimeTab({ settings, onChange }: TabProps) {
 
 function MazeTab({ settings, onChange }: TabProps) {
   const shapeKeys: ShapeKey[] = ["decoyDensity", "branchDepth", "loopiness", "twistiness", "fillCoverage"];
-  const fake = settings.fakeGoalsEnabled;
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   return (
     <group>
@@ -256,53 +255,37 @@ function MazeTab({ settings, onChange }: TabProps) {
         position={[0.55, 0.86, 0.03]}
         color={settings.godMode ? UI.accentSoft : "#e9e4d9"}
       />
-      <Label position={[-0.75, 0.62, 0.02]} anchorX="left" size={0.058} color={UI.inkSoft}>
-        Fake goals
+      <SliderRow
+        position={[0, 0.58, 0.02]}
+        label="Number of fake goals"
+        valueText={`${settings.fakeGoalCount}`}
+        value={settings.fakeGoalCount}
+        min={FAKE_GOAL_RANGE.min}
+        max={FAKE_GOAL_RANGE.max}
+        step={FAKE_GOAL_RANGE.step}
+        onChange={(v) => onChange({ ...settings, fakeGoalCount: v })}
+      />
+      <Label position={[-0.75, 0.22, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
+        Fake goal colour
       </Label>
       <Button3D
-        label={fake ? "On" : "Off"}
-        onClick={() => onChange({ ...settings, fakeGoalsEnabled: !fake })}
-        width={0.4}
+        label="Same"
+        onClick={() => onChange({ ...settings, fakeGoalDistinct: false })}
+        width={0.42}
         height={0.15}
         size={0.055}
-        position={[0.55, 0.62, 0.03]}
-        color={fake ? UI.accentSoft : "#e9e4d9"}
+        position={[0.18, 0.22, 0.03]}
+        color={settings.fakeGoalDistinct ? "#e9e4d9" : UI.accentSoft}
       />
-      {fake && (
-        <group>
-          <SliderRow
-            position={[0, 0.38, 0.02]}
-            label="Number of fake goals"
-            valueText={`${settings.fakeGoalCount}`}
-            value={settings.fakeGoalCount}
-            min={FAKE_GOAL_RANGE.min}
-            max={FAKE_GOAL_RANGE.max}
-            step={FAKE_GOAL_RANGE.step}
-            onChange={(v) => onChange({ ...settings, fakeGoalCount: v })}
-          />
-          <Label position={[-0.75, 0.12, 0.02]} anchorX="left" size={0.05} color={UI.inkSoft}>
-            Fake goal colour
-          </Label>
-          <Button3D
-            label="Same"
-            onClick={() => onChange({ ...settings, fakeGoalDistinct: false })}
-            width={0.42}
-            height={0.15}
-            size={0.055}
-            position={[0.18, 0.12, 0.03]}
-            color={settings.fakeGoalDistinct ? "#e9e4d9" : UI.accentSoft}
-          />
-          <Button3D
-            label="Distinct"
-            onClick={() => onChange({ ...settings, fakeGoalDistinct: true })}
-            width={0.42}
-            height={0.15}
-            size={0.055}
-            position={[0.64, 0.12, 0.03]}
-            color={settings.fakeGoalDistinct ? UI.accentSoft : "#e9e4d9"}
-          />
-        </group>
-      )}
+      <Button3D
+        label="Distinct"
+        onClick={() => onChange({ ...settings, fakeGoalDistinct: true })}
+        width={0.42}
+        height={0.15}
+        size={0.055}
+        position={[0.64, 0.22, 0.03]}
+        color={settings.fakeGoalDistinct ? UI.accentSoft : "#e9e4d9"}
+      />
       {shapeKeys.map((key, i) => {
         const r = SHAPE_RANGES[key];
         const v = settings.mazeShape[key];

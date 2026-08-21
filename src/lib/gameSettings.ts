@@ -20,8 +20,6 @@ export interface GameSettings {
   snapDegrees: SnapAngle;
   /** degrees per second while holding the stick in smooth mode */
   smoothDegPerSec: number;
-  /** place decoy goal markers in false branches */
-  fakeGoalsEnabled: boolean;
   /** how many decoy goals to place */
   fakeGoalCount: number;
   /** give decoys their own colour instead of matching the real goal */
@@ -74,7 +72,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
   turnStyle: "snap",
   snapDegrees: 30,
   smoothDegPerSec: 120,
-  fakeGoalsEnabled: true,
   fakeGoalCount: 3,
   fakeGoalDistinct: false,
   godMode: false,

@@ -72,7 +72,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   turnStyle: "snap",
   snapDegrees: 30,
   smoothDegPerSec: 120,
-  fakeGoalCount: 3,
+  fakeGoalCount: 5,
   fakeGoalDistinct: false,
   godMode: false,
   musicVolume: 0.1,
